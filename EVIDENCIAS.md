@@ -102,3 +102,40 @@ Base reconstruida en andessupply.db
 ```
 
 **Resultado:** ✅ Todas las Tools responden con el mismo formato (`ok` + datos o `motivo`); los casos inexistentes se informan sin ambigüedad.
+
+
+---
+
+## Hito 2 · Evidencia 5: error detectado y corregido (orden de la semilla)
+
+**Qué pasó:** después del experimento del orden, `config_caso.py` quedó guardado con el orden cambiado (capacidad → costo → ventana) y entró así al commit `88bbb4b`. El código producía 21 / 3 / 400, mientras la Evidencia 1 y los `.md` decían 21 / 5 / 300.
+**Cómo se detectó:** al probar las Reglas, la fecha mínima y el costo no coincidían con lo esperado.
+**Corrección:** se restauró el orden original (capacidad → ventana → costo) en el commit `b3556e8`.
+
+```text
+CASO_ID=LOG-009, SEMILLA=9911, VARIANTE=Logística, capacidad_diaria=21, ventana_entrega_dias=5, costo_extraordinario=300
+capacidad_diaria=21 unidades/día
+ventana_entrega_dias=5 días hábiles
+costo_extraordinario=300 USD
+```
+
+**Resultado:** ✅ El escenario vuelve a coincidir con la Evidencia 1.
+
+
+---
+
+## Hito 2 · Evidencia 6: Reglas de negocio
+
+**Qué demuestra:** decisiones objetivas en Python puro: APROBADO, EXCEPCION (requiere supervisor) y RECHAZADO.
+**Comando:** `uv run reglas.py`
+
+```text
+Fecha mínima Lima (0 días tránsito): 2026-10-19
+Fecha mínima Arequipa (2 días): 2026-10-21
+1) C-1003 · 12 EDGE-ORIN · jueves 15 · Lima: {'decision': 'EXCEPCION', 'motivos': ['Fecha pedida 2026-10-15 es anterior a la mínima 2026-10-19', 'Capacidad insuficiente: pide 12, quedan 9 libres'], 'requiere': 'Supervisor logística', 'costo_extraordinario': 300}
+2) C-1004 · 5 PLC-S7M · 22 · Arequipa (despacho el 2026-10-20 ): {'decision': 'APROBADO', 'motivos': [], 'fecha_entrega': '2026-10-22'}
+3) C-1008 · 6 CAM-GIGE5 · viernes 23: {'decision': 'RECHAZADO', 'motivos': ['Stock insuficiente: pide 6, hay 4']}
+4) Entrega un sábado 17: {'decision': 'RECHAZADO', 'motivos': ['2026-10-17 no es día hábil (D5)']}
+```
+
+**Resultado:** ✅ El caso base genera EXCEPCION con dos motivos; el stock insuficiente y el sábado se RECHAZAN (no tiene sentido pedir aprobación ni reintentar).

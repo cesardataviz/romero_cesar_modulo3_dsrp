@@ -24,7 +24,7 @@
 
 - **Problema:** si el sistema usa la fecha real de hoy, los resultados cambian cada día y la demo deja de ser reproducible.
 - **Alternativas:** fecha real del sistema · fecha de referencia fija.
-- **Decisión:** "hoy" del escenario = lunes 2026-10-12.
+- **Decisión:** "hoy" del escenario = lunes 2026-10-12 (`FECHA_REFERENCIA`): primer día de la agenda de despachos, posterior a todo el historial de ventas.
 - **Trade-off:** reproducible; a cambio, no refleja el día real.
 - **Riesgo:** si el sistema se usara como real con la fecha fija, calcularía plazos desde un día equivocado y prometería fechas incorrectas.
 - **En producción:** se usaría la fecha actual; la fecha sería configurable (fija solo para pruebas y demo).
@@ -44,5 +44,5 @@
 - **Alternativas:** que la Tool devuelva 0 en fines de semana · que una Regla valide los días hábiles.
 - **Decisión:** la Tool solo informa datos; la Regla decide que sábados y domingos no se despacha.
 - **Trade-off:** separación clara de responsabilidades; a cambio, la Tool sola no basta: siempre debe pasar por la Regla.
-- **Riesgo:** (pendiente)
-- **En producción:** (pendiente)
+- **Riesgo:** la regla no conoce feriados: un feriado entre semana (p. ej. martes 8 de diciembre) se trataría como hábil y se aprobaría una entrega que no puede salir.
+- **En producción:** una tabla de calendario con los feriados oficiales (gob.pe), cargada periódicamente en el ERP; la regla consultaría esa tabla.

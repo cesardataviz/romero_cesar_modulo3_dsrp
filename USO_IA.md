@@ -18,7 +18,7 @@ Las decisiones, ejecuciones y evidencias son mías.
 | Diseño de datos | Propuesta de tablas, análisis de riesgos y generación de datos de ejemplo |
 | Carga a SQLite | Propuesta de `cargar_datos.py` y explicación de SQL parametrizado |
 | Clasificación de solicitudes | Propuesta de solicitudes candidatas y revisión de mi clasificación |
-| Consultas SQL y Tools | Propuesta de `consultas_sql.py` y `tools.py` y explicación del código |
+| Consultas SQL, Tools y Reglas | Propuesta de `consultas_sql.py`, `tools.py` y `reglas.py`, y explicación del código |
 
 ## 3. Qué modifiqué yo
 
