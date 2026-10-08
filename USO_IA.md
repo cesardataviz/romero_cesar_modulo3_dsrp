@@ -18,12 +18,14 @@ Las decisiones, ejecuciones y evidencias son mías.
 | Diseño de datos | Propuesta de tablas, análisis de riesgos y generación de datos de ejemplo |
 | Carga a SQLite | Propuesta de `cargar_datos.py` y explicación de SQL parametrizado |
 | Clasificación de solicitudes | Propuesta de solicitudes candidatas y revisión de mi clasificación |
+| Consultas SQL | Propuesta de `consultas_sql.py` y explicación del código |
 
 ## 3. Qué modifiqué yo
 
 - Ajusté los rangos de los parámetros del caso según mi criterio.
 - Decidí incluir la ciudad de destino en el cálculo del plazo de entrega.
 - Clasifiqué yo las solicitudes; la IA corrigió 7 y acepté las correcciones tras entenderlas.
+- Detecté que un cliente inexistente y uno puntual daban el mismo resultado y propuse validar su existencia.
 
 ## 4. Cómo validé
 

@@ -16,7 +16,15 @@
 - **¿Qué dato cambia frecuentemente y no debería vivir en un prompt?** El stock, la capacidad libre y los despachos programados. Deben consultarse en el momento; las políticas cambian poco y viven en documentos.
 - **¿Qué información es documental y cuál transaccional?** Documental: políticas de despacho y despachos extraordinarios (RAG por chunks). Transaccional: ventas, entregas e inventario (SQL para historial, Tools para estado actual).
 
-## Hito 2 · Router + RAG + SQL + Tools — ⚪ pendiente
+## Hito 2 · Router + RAG + SQL + Tools — 🟡 en curso
+
+- **Qué se construyó:** `consultas_sql.py` con 3 consultas parametrizadas (entregas tardías, historial, cumplimiento) y `cliente_existe`.
+- **Qué falló:** un cliente puntual y uno inexistente devolvían la misma lista vacía.
+- **Qué aprendí:** una lista vacía no distingue "no hay datos" de "no existe"; validar en la tabla oficial (`clientes`) y devolver un valor, no solo imprimir.
+- **Qué decisión cambió:** validar el cliente antes de consultar (D4).
+- **Evidencia:** EVIDENCIAS.md · Evidencia 3.
+- **Pendiente:** Tools, RAG, Router y sus pruebas.
+
 ## Hito 3 · Workflow con estado — ⚪ pendiente
 ## Hito 4 · Retry, checkpoint y HITL — ⚪ pendiente
 ## Hito 5 · MCP — ⚪ pendiente

@@ -57,3 +57,28 @@ Base reconstruida en andessupply.db
 ```
 
 **Resultado:** ✅ 6 tablas cargadas. La base `.db` no se versiona en git (es un archivo generado).
+
+
+---
+
+## Hito 2 · Evidencia 3: consultas SQL parametrizadas
+
+**Qué demuestra:** 3 consultas SQL sobre el historial y validación de cliente inexistente.
+**Comando:** `uv run consultas_sql.py`
+
+```text
+1) Entregas tardías de C-1002:
+   {'venta_id': 'V-0005', 'sku': 'EDGE-NANO', 'cantidad': 10, 'fecha_prometida': '2026-08-12', 'fecha_entregada': '2026-08-18', 'dias_retraso': 6}
+   {'venta_id': 'V-0012', 'sku': 'SENS-PROX', 'cantidad': 120, 'fecha_prometida': '2026-09-18', 'fecha_entregada': '2026-09-25', 'dias_retraso': 7}
+2) Historial de C-1003 desde 2026-07-12:
+   {'venta_id': 'V-0002', 'fecha_prometida': '2026-07-22', 'sku': 'CAM-GIGE5', 'producto': 'Camara industrial GigE 5MP', 'cantidad': 4}
+   {'venta_id': 'V-0009', 'fecha_prometida': '2026-09-02', 'sku': 'EDGE-ORIN', 'producto': 'Modulo edge computing Orin', 'cantidad': 10}
+   {'venta_id': 'V-0015', 'fecha_prometida': '2026-10-01', 'sku': 'LENS-12MM', 'producto': 'Lente industrial 12 mm', 'cantidad': 12}
+3) Cumplimiento de C-1002: {'total': 2, 'a_tiempo': 0}
+4) Entregas tardías de C-1099 (no existe): []
+5) Entregas tardías de C-1001: []
+6) C-1001: existe, cumplimiento {'total': 3, 'a_tiempo': 3}
+6) C-1099: cliente no existe
+```
+
+**Resultado:** ✅ Las 3 consultas responden. Un cliente puntual (C-1001) y uno inexistente (C-1099) devuelven la misma lista vacía; `cliente_existe` los distingue.

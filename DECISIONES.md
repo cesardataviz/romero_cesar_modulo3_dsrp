@@ -28,3 +28,12 @@
 - **Trade-off:** reproducible; a cambio, no refleja el día real.
 - **Riesgo:** si el sistema se usara como real con la fecha fija, calcularía plazos desde un día equivocado y prometería fechas incorrectas.
 - **En producción:** se usaría la fecha actual; la fecha sería configurable (fija solo para pruebas y demo).
+
+## D4 · Validar el cliente antes de interpretar una consulta
+
+- **Problema:** un cliente puntual y uno inexistente devuelven el mismo resultado vacío; el agente podría decir "no tiene retrasos" de un cliente que no existe.
+- **Alternativas:** buscar al cliente en `ventas` · buscar en `clientes` · solo imprimir un mensaje.
+- **Decisión:** función `cliente_existe` que busca en `clientes` y devuelve True/False.
+- **Trade-off:** una consulta extra por solicitud; a cambio, respuestas correctas.
+- **Riesgo:** "existe" no significa "está habilitado": un cliente dado de baja seguiría en la tabla y el agente podría comprometerle una entrega. A gran escala, la consulta extra suma carga.
+- **En producción:** el cliente y su estado (activo, bloqueado, de baja) se validarían en el CRM/ERP en tiempo real.
