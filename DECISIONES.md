@@ -37,3 +37,12 @@
 - **Trade-off:** una consulta extra por solicitud; a cambio, respuestas correctas.
 - **Riesgo:** "existe" no significa "está habilitado": un cliente dado de baja seguiría en la tabla y el agente podría comprometerle una entrega. A gran escala, la consulta extra suma carga.
 - **En producción:** el cliente y su estado (activo, bloqueado, de baja) se validarían en el CRM/ERP en tiempo real.
+
+## D5 · Los días no hábiles los decide una Regla, no la Tool
+
+- **Problema:** una fecha sin despachos registrados (p. ej. sábado) aparece con capacidad libre completa; el sistema podría comprometer una entrega que nunca saldrá.
+- **Alternativas:** que la Tool devuelva 0 en fines de semana · que una Regla valide los días hábiles.
+- **Decisión:** la Tool solo informa datos; la Regla decide que sábados y domingos no se despacha.
+- **Trade-off:** separación clara de responsabilidades; a cambio, la Tool sola no basta: siempre debe pasar por la Regla.
+- **Riesgo:** (pendiente)
+- **En producción:** (pendiente)

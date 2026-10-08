@@ -18,12 +18,12 @@
 
 ## Hito 2 · Router + RAG + SQL + Tools — 🟡 en curso
 
-- **Qué se construyó:** `consultas_sql.py` con 3 consultas parametrizadas (entregas tardías, historial, cumplimiento) y `cliente_existe`.
+- **Qué se construyó:** `consultas_sql.py` con 3 consultas parametrizadas (entregas tardías, historial, cumplimiento) y `cliente_existe`; `tools.py` con 4 Tools semánticas (cliente, stock, capacidad, tránsito).
 - **Qué falló:** un cliente puntual y uno inexistente devolvían la misma lista vacía.
 - **Qué aprendí:** una lista vacía no distingue "no hay datos" de "no existe"; validar en la tabla oficial (`clientes`) y devolver un valor, no solo imprimir.
 - **Qué decisión cambió:** validar el cliente antes de consultar (D4).
-- **Evidencia:** EVIDENCIAS.md · Evidencia 3.
-- **Pendiente:** Tools, RAG, Router y sus pruebas.
+- **Evidencia:** EVIDENCIAS.md · Evidencias 3 y 4.
+- **Pendiente:** Reglas, RAG, Router y sus pruebas.
 
 ## Hito 3 · Workflow con estado — ⚪ pendiente
 ## Hito 4 · Retry, checkpoint y HITL — ⚪ pendiente

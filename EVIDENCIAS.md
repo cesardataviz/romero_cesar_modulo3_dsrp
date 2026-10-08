@@ -82,3 +82,23 @@ Base reconstruida en andessupply.db
 ```
 
 **Resultado:** ✅ Las 3 consultas responden. Un cliente puntual (C-1001) y uno inexistente (C-1099) devuelven la misma lista vacía; `cliente_existe` los distingue.
+
+
+---
+
+## Hito 2 · Evidencia 4: Tools semánticas
+
+**Qué demuestra:** 4 Tools que consultan el estado actual y manejan cliente, SKU y ciudad inexistentes.
+**Comando:** `uv run tools.py`
+
+```text
+1) Cliente C-1003: {'ok': True, 'cliente_id': 'C-1003', 'nombre': 'Textil Lima Industrial SAC', 'ciudad': 'Lima', 'tipo': 'prioritario'}
+2) Cliente C-1099: {'ok': False, 'motivo': 'El cliente C-1099 no existe'}
+3) Stock EDGE-ORIN: {'ok': True, 'sku': 'EDGE-ORIN', 'nombre': 'Modulo edge computing Orin', 'stock_disponible': 18}
+4) Stock DRONE-X1: {'ok': False, 'motivo': 'El SKU DRONE-X1 no existe'}
+5) Capacidad jueves 2026-10-15: {'ok': True, 'fecha': '2026-10-15', 'capacidad_diaria': 21, 'comprometidas': 12, 'libres': 9}
+6) Tránsito a Arequipa: {'ok': True, 'ciudad': 'Arequipa', 'dias_transito': 2}
+7) Tránsito a Iquitos: {'ok': False, 'motivo': 'La ciudad Iquitos no tiene tránsito registrado'}
+```
+
+**Resultado:** ✅ Todas las Tools responden con el mismo formato (`ok` + datos o `motivo`); los casos inexistentes se informan sin ambigüedad.
