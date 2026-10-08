@@ -1,0 +1,9 @@
+cliente_id,nombre,ciudad,tipo
+C-1001,Minera Los Andes SAC,Arequipa,prioritario
+C-1002,Agroindustrial del Norte SA,Trujillo,estandar
+C-1003,Textil Lima Industrial SAC,Lima,prioritario
+C-1004,Cementera del Sur SA,Arequipa,estandar
+C-1005,Pesquera Pacifico SAC,Piura,estandar
+C-1006,Operadora Portuaria Callao SA,Callao,prioritario
+C-1007,Maderera Amazonica EIRL,Iquitos,estandar
+C-1008,Embotelladora Andina Cusco SA,Cusco,estandar

@@ -1,0 +1,8 @@
+sku,nombre,categoria,precio_usd
+EDGE-ORIN,Modulo edge computing Orin,edge computing,1850
+EDGE-NANO,Modulo edge computing Nano,edge computing,420
+CAM-GIGE5,Camara industrial GigE 5MP,vision artificial,1200
+LENS-12MM,Lente industrial 12 mm,vision artificial,180
+PLC-S7M,Controlador PLC compacto,automatizacion,950
+SENS-PROX,Sensor de proximidad inductivo,automatizacion,45
+SW-POE8,Switch PoE industrial 8 puertos,redes,380

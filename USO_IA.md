@@ -15,10 +15,12 @@ Las decisiones, ejecuciones y evidencias son mías.
 | Configuración del entorno | Creación del proyecto con uv y resolución de errores de terminal |
 | Parámetros del caso | Propuesta inicial de `config_caso.py` y explicación de cómo funciona la semilla |
 | Evidencias | Estructura para documentar las pruebas de reproducibilidad |
+| Diseño de datos | Propuesta de tablas, análisis de riesgos y generación de datos de ejemplo |
 
 ## 3. Qué modifiqué yo
 
 - Ajusté los rangos de los parámetros del caso según mi criterio.
+- Decidí incluir la ciudad de destino en el cálculo del plazo de entrega.
 
 ## 4. Cómo validé
 
