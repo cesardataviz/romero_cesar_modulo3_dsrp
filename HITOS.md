@@ -6,9 +6,10 @@
 - **Qué falló:** ejecutar desde una carpeta equivocada (`program not found`).
 - **Qué aprendí:** la semilla genera una secuencia pseudoaleatoria fija; cambiar el orden de las llamadas cambia los valores.
 - **Qué decisión cambió:** la ciudad de destino se incluye en el cálculo del plazo (D2).
-- **Evidencia:** EVIDENCIAS.md · Evidencia 1.
+- **Evidencia:** EVIDENCIAS.md · Evidencias 1 y 2.
 - **Datos:** 6 CSV en `data/` (clientes, ciudades, productos, inventario, ventas, despachos programados).
-- **Pendiente:** carga a SQLite, 6–10 solicitudes, tabla "consulta → capacidad → justificación".
+- **Carga:** `cargar_datos.py` reconstruye SQLite desde los CSV.
+- **Pendiente:** 6–10 solicitudes, tabla "consulta → capacidad → justificación".
 
 ## Hito 2 · Router + RAG + SQL + Tools — ⚪ pendiente
 ## Hito 3 · Workflow con estado — ⚪ pendiente

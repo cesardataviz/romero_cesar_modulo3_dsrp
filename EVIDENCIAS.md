@@ -38,3 +38,22 @@ Los números de random no son realmente aleatorios: son pseudoaleatorios. Salen 
 
 **¿Qué pasaría con los valores si cambio el orden de las tres líneas rng...?**
 Los números cambian, porque cambio la manera en que las variables recibieron cada número. Por eso, para buenas prácticas se sugiere poder añadir al final un nuevo parámetro, para que no se altere el escenario.
+
+---
+
+## Hito 1 · Evidencia 2: carga CSV → SQLite
+
+**Qué demuestra:** la base se reconstruye desde los CSV en cada ejecución (mitigación de D1).
+**Comando:** `uv run cargar_datos.py`
+
+```text
+Se cargaron 8 filas en la tabla clientes.
+Se cargaron 6 filas en la tabla ciudades.
+Se cargaron 7 filas en la tabla productos.
+Se cargaron 7 filas en la tabla inventario.
+Se cargaron 15 filas en la tabla ventas.
+Se cargaron 10 filas en la tabla despachos_programados.
+Base reconstruida en andessupply.db
+```
+
+**Resultado:** ✅ 6 tablas cargadas. La base `.db` no se versiona en git (es un archivo generado).
