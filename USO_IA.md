@@ -16,11 +16,14 @@ Las decisiones, ejecuciones y evidencias son mías.
 | Parámetros del caso | Propuesta inicial de `config_caso.py` y explicación de cómo funciona la semilla |
 | Evidencias | Estructura para documentar las pruebas de reproducibilidad |
 | Diseño de datos | Propuesta de tablas, análisis de riesgos y generación de datos de ejemplo |
+| Carga a SQLite | Propuesta de `cargar_datos.py` y explicación de SQL parametrizado |
+| Clasificación de solicitudes | Propuesta de solicitudes candidatas y revisión de mi clasificación |
 
 ## 3. Qué modifiqué yo
 
 - Ajusté los rangos de los parámetros del caso según mi criterio.
 - Decidí incluir la ciudad de destino en el cálculo del plazo de entrega.
+- Clasifiqué yo las solicitudes; la IA corrigió 7 y acepté las correcciones tras entenderlas.
 
 ## 4. Cómo validé
 
