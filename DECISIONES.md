@@ -46,3 +46,12 @@
 - **Trade-off:** separación clara de responsabilidades; a cambio, la Tool sola no basta: siempre debe pasar por la Regla.
 - **Riesgo:** la regla no conoce feriados: un feriado entre semana (p. ej. martes 8 de diciembre) se trataría como hábil y se aprobaría una entrega que no puede salir.
 - **En producción:** una tabla de calendario con los feriados oficiales (gob.pe), cargada periódicamente en el ERP; la regla consultaría esa tabla.
+
+## D6 · Búsqueda en políticas (RAG): embeddings con OpenAI, TF-IDF como línea base
+
+- **Problema:** encontrar el fragmento de política que responde una pregunta, aunque use palabras distintas a las del documento.
+- **Alternativas:** TF-IDF (por palabras, local) · embeddings locales · embeddings por API (Voyage AI u OpenAI).
+- **Decisión:** embeddings por API con OpenAI (`text-embedding-3-small`), porque ya tengo cuenta; TF-IDF se implementa también como línea base para comparar.
+- **Trade-off:** entiende sinónimos ("urgente" ≈ "extraordinario") y no requiere descargas pesadas; a cambio, depende de internet y de una API key.
+- **Riesgo:** (pendiente)
+- **En producción:** (pendiente)

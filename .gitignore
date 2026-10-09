@@ -10,3 +10,6 @@ wheels/
 .venv
 
 data/*.db
+
+# Secretos (API keys)
+.env
