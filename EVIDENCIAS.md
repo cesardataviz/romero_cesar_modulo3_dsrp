@@ -139,3 +139,54 @@ Fecha mínima Arequipa (2 días): 2026-10-21
 ```
 
 **Resultado:** ✅ El caso base genera EXCEPCION con dos motivos; el stock insuficiente y el sábado se RECHAZAN (no tiene sentido pedir aprobación ni reintentar).
+
+
+---
+
+## Hito 2 · Evidencia 7: RAG con TF-IDF (línea base)
+
+**Qué demuestra:** chunking por sección, respuesta con fuente, un caso que no usa RAG y los límites de la búsqueda por palabras.
+**Comando:** `uv run rag.py`
+
+```text
+> ¿Cuál es la política para un despacho extraordinario?
+  puntaje=0.24 · politica_despacho_extraordinario.md § Cuándo aplica
+> ¿Quién debe aprobar un despacho extraordinario?
+  puntaje=0.318 · politica_despacho_extraordinario.md § Cuándo aplica
+> ¿Despachan los sábados?
+  puntaje=0.277 · politica_despacho.md § Días y horario de despacho
+> ¿Quién autoriza un envío urgente?
+  puntaje=0.242 · politica_despacho_extraordinario.md § Costo
+> ¿Cuántas entregas tardías tuvo C-1002?
+  puntaje=0.0 · sin fuente → Las políticas no cubren esta pregunta.
+```
+
+**Resultado:** 3/5 correctas. Falla #2 ("aprobar" ≠ "aprobación") y #4 (sinónimos "autoriza", "urgente"); la #4 responde mal con un puntaje sobre el umbral. La #5 se descarta correctamente (no es pregunta documental). Predije ambos errores antes de ejecutar.
+
+
+---
+
+## Hito 2 · Evidencia 8: TF-IDF vs. embeddings (OpenAI `text-embedding-3-small`)
+
+**Qué demuestra:** por qué se eligen embeddings y por qué necesitan un umbral propio.
+**Comando:** `uv run rag.py`
+
+```text
+> ¿Cuál es la política para un despacho extraordinario?
+  TF-IDF     0.240 · politica_despacho_extraordinario.md § Cuándo aplica
+  Embeddings 0.693 · politica_despacho_extraordinario.md § Cuándo aplica
+> ¿Quién debe aprobar un despacho extraordinario?
+  TF-IDF     0.318 · politica_despacho_extraordinario.md § Cuándo aplica
+  Embeddings 0.611 · politica_despacho_extraordinario.md § Cuándo aplica
+> ¿Despachan los sábados?
+  TF-IDF     0.277 · politica_despacho.md § Días y horario de despacho
+  Embeddings 0.562 · politica_despacho.md § Días y horario de despacho
+> ¿Quién autoriza un envío urgente?
+  TF-IDF     0.242 · politica_despacho_extraordinario.md § Costo
+  Embeddings 0.540 · politica_despacho_extraordinario.md § Aprobación
+> ¿Cuántas entregas tardías tuvo C-1002?
+  TF-IDF     0.000 · politica_despacho.md § Días y horario de despacho
+  Embeddings 0.379 · politica_despacho.md § Capacidad diaria
+```
+
+**Resultado:** embeddings corrige el caso de sinónimos (#4) pero también falla la #2 (la sección "Cuándo aplica" repite "despacho extraordinario"). Con embeddings ningún puntaje es 0: la #5 obtiene 0.379, así que hace falta un umbral (~0.45) entre las correctas (≥ 0.540) y la irrelevante. Con ese umbral: embeddings 4/5, TF-IDF 3/5.

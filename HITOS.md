@@ -18,11 +18,11 @@
 
 ## Hito 2 · Router + RAG + SQL + Tools — 🟡 en curso
 
-- **Qué se construyó:** `consultas_sql.py` con 3 consultas parametrizadas (entregas tardías, historial, cumplimiento) y `cliente_existe`; `tools.py` con 4 Tools semánticas (cliente, stock, capacidad, tránsito); `reglas.py` con la decisión APROBADO / EXCEPCION / RECHAZADO.
+- **Qué se construyó:** `consultas_sql.py` con 3 consultas parametrizadas (entregas tardías, historial, cumplimiento) y `cliente_existe`; `tools.py` con 4 Tools semánticas (cliente, stock, capacidad, tránsito); `reglas.py` con la decisión APROBADO / EXCEPCION / RECHAZADO; `rag.py` con chunking por sección y búsqueda TF-IDF y por embeddings (OpenAI) con fuente.
 - **Qué falló:** un cliente puntual y uno inexistente devolvían la misma lista vacía. Además, `config_caso.py` quedó commiteado con el orden de la semilla cambiado (21/3/400 en vez de 21/5/300); se detectó al probar las Reglas y se corrigió (Evidencia 5). La API key quedó escrita en `.env.example` (archivo que sí va a git); se detectó antes del commit y se movió a `.env`.
-- **Qué aprendí:** una lista vacía no distingue "no hay datos" de "no existe"; validar en la tabla oficial (`clientes`) y devolver un valor, no solo imprimir.
+- **Qué aprendí:** una lista vacía no distingue "no hay datos" de "no existe"; validar en la tabla oficial (`clientes`) y devolver un valor, no solo imprimir. TF-IDF solo compara palabras exactas: falla con sinónimos y un puntaje alto no garantiza una respuesta correcta. Los embeddings entienden sinónimos pero no son infalibles, nunca dan 0 y necesitan su propio umbral.
 - **Qué decisión cambió:** validar el cliente antes de consultar (D4).
-- **Evidencia:** EVIDENCIAS.md · Evidencias 3 a 6.
+- **Evidencia:** EVIDENCIAS.md · Evidencias 3 a 8.
 - **Pendiente:** RAG, Router y sus pruebas.
 
 ## Hito 3 · Workflow con estado — ⚪ pendiente
