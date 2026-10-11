@@ -65,3 +65,21 @@
 - **Trade-off:** corrige el caso sin agrandar la respuesta; a cambio, el margen es estrecho (0.650 vs. 0.631).
 - **Riesgo:** el margen es de solo 0.019: si un cliente reformula la pregunta, "Cuándo aplica" podría volver a ganar y el sistema respondería con seguridad y equivocado, sin que nadie lo note.
 - **En producción:** con cientos de documentos no bastaría el título: se enriquecerían los chunks con metadatos (palabras clave, términos relacionados) y cada cambio se validaría contra un conjunto fijo de preguntas de evaluación para comprobar que no empeora otras.
+
+## D8 · Router híbrido: reglas + LLM validado
+
+- **Problema:** decidir a qué capacidad va cada solicitud (RAG, SQL, TOOLS, CLARIFY, DIRECT) y extraer cliente, SKU, cantidad y fecha.
+- **Alternativas:** determinístico (solo reglas) · modelo (solo LLM) · híbrido.
+- **Decisión:** híbrido. Reglas para lo obvio (saludos, palabras de historial o de política); LLM (`gpt-6-luna`, salida estructurada) para el resto; si la confianza es baja o faltan datos, CLARIFY; si el LLM falla, CLARIFY.
+- **Trade-off:** barato y predecible donde se puede, flexible donde se necesita; a cambio, más piezas que mantener y explicar.
+- **Riesgo:** (pendiente)
+- **En producción:** (pendiente)
+
+## D9 · Criterio para fechas imprecisas en el router
+
+- **Problema:** la 1.ª evaluación del router dio 9/12; los 3 errores eran fechas imprecisas ("el 22", "lo antes posible", "la próxima semana") enviadas a CLARIFY.
+- **Alternativas:** enviar toda fecha imprecisa a CLARIFY · tratar "lo antes posible" como pedido sin fecha · interpretar todo automáticamente.
+- **Decisión (criterio estricto):** solo se aceptan fechas completas (día + mes, o día de la semana + número, p. ej. "el viernes 23"). "El jueves", "el 22", "la próxima semana", "a fin de mes" o "pronto" → CLARIFY. "Lo antes posible" / "cuanto antes" → TOOLS sin fecha: el sistema propone la fecha más cercana con `fecha_minima_entrega`. Se corrigieron las etiquetas de los casos #1, #2 y #8.
+- **Trade-off:** se evita prometer una fecha mal interpretada; a cambio, el cliente debe responder más preguntas, y el criterio vive en el prompt y depende de que el LLM lo siga. Se descartó interpretar "el jueves" o "el 22" como su próxima ocurrencia.
+- **Riesgo:** (pendiente)
+- **En producción:** (pendiente)

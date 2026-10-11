@@ -254,3 +254,75 @@ Fecha mínima Arequipa (2 días): 2026-10-21
 ```
 
 **Resultado:** ✅ 5/5 respuestas correctas con fuente; la pregunta de SQL se descarta por el umbral. Costo de la 1.ª ejecución ≈ 676 tokens (~0.0000135 USD); con caché, ~61 tokens por ejecución.
+
+
+---
+
+## Hito 2 · Evidencia 11: evaluación del router (12 casos) — 1.ª versión
+
+**Qué demuestra:** router híbrido (4 casos por reglas, 8 por LLM `gpt-6-luna`) y registro de sus errores (§8.1).
+**Comando:** `uv run evaluar_router.py`
+
+| # | Solicitud | Esperado | Obtenido | Origen · confianza |
+|---|---|---|---|---|
+| 1 | ¿Pueden entregar 12 EDGE-ORIN a C-1003 el jueves? | TOOLS | TOOLS ✅ | llm · 0.92 (fecha=2026-10-15) |
+| 2 | ¿Pueden despachar 5 PLC-S7M a C-1004 en Arequipa para el 22? | TOOLS | **CLARIFY ❌** | llm · 0.97 — "falta el mes y el año para «el 22»" |
+| 3 | C-1008 necesita 6 CAM-GIGE5 para el viernes 23. | TOOLS | TOOLS ✅ | llm · 0.96 (fecha=2026-10-23) |
+| 4 | ¿Cuántas entregas tardías ha tenido Agroindustrial del Norte? | SQL | SQL ✅ | regla · 1.0 |
+| 5 | ¿Cuál es la política para un despacho extraordinario? | RAG | RAG ✅ | regla · 1.0 |
+| 6 | ¿Cuál es el plazo estándar de entrega a Piura? | RAG | RAG ✅ | llm · 0.98 |
+| 7 | Envíen 3 EDGE-NANO a C-1007 en Iquitos lo antes posible. | TOOLS | **CLARIFY ❌** | llm · 0.95 — "«lo antes posible» no es una fecha concreta" |
+| 8 | C-1099 quiere 10 SENS-PROX para la próxima semana. | TOOLS | **CLARIFY ❌** | llm · 0.99 — "«la próxima semana» no es un día concreto" |
+| 9 | Necesito unos equipos para pronto. | CLARIFY | CLARIFY ✅ | llm · 0.99 |
+| 10 | Hola, ¿qué puedes hacer por mí? | DIRECT | DIRECT ✅ | regla · 1.0 (sin herramientas) |
+| 11 | ¿Qué productos le hemos vendido a C-1003 en los últimos 3 meses? | SQL | SQL ✅ | regla · 1.0 |
+| 12 | ¿Quién autoriza un envío urgente? | RAG | RAG ✅ | llm · 0.98 |
+
+**Resultado:** 9/12. Los 3 errores tienen la misma causa: el prompt dice que falta información si falta la fecha, y el LLM trató las fechas imprecisas ("el 22", "lo antes posible", "la próxima semana") como faltantes, con confianza alta. No es un error de baja confianza, sino de criterio en las instrucciones. Costo de la evaluación ≈ 0.00057 USD.
+
+
+---
+
+## Hito 2 · Evidencia 12: evaluación del router — 2.ª versión (criterio de fechas D9)
+
+**Cambio:** prompt con criterio de fechas imprecisas; etiquetas #2 y #8 corregidas a CLARIFY; 2 casos nuevos (#13, #14) para comprobar que el criterio generaliza.
+**Comando:** `uv run evaluar_router.py`
+
+| # | Solicitud | Esperado | Obtenido | Cambio vs. 1.ª versión |
+|---|---|---|---|---|
+| 1 | ¿Pueden entregar 12 EDGE-ORIN a C-1003 el jueves? | TOOLS | **CLARIFY ❌** (0.98) | **Regresión**: antes acertaba ("el jueves" → 2026-10-15) |
+| 2 | …para el 22? | CLARIFY | CLARIFY ✅ | etiqueta corregida |
+| 7 | …lo antes posible. | TOOLS | TOOLS ✅ (fecha=None) | **corregido por el prompt** |
+| 8 | …la próxima semana. | CLARIFY | CLARIFY ✅ | etiqueta corregida |
+| 13 | C-1005 necesita 4 LENS-12MM cuanto antes. *(nuevo)* | TOOLS | TOOLS ✅ | generaliza |
+| 14 | ¿Pueden enviar 2 PLC-S7M a C-1006 a fin de mes? *(nuevo)* | CLARIFY | CLARIFY ✅ | generaliza |
+| resto | casos 3–6 y 9–12 | — | ✅ | sin cambios |
+
+**Resultado:** 13/14. Predije 13/14 y que fallaría la #1. El prompt hizo al LLM más estricto con las fechas y "el jueves" pasó a considerarse imprecisa: un cambio que arregla un caso puede romper otro. Los casos nuevos (#13, #14) aciertan, así que el criterio generaliza. Costo ≈ 0.00077 USD.
+
+
+---
+
+## Hito 2 · Evidencia 13: evaluación del router — versión final (criterio estricto de fechas)
+
+**Cambio:** solo la etiqueta del caso #1 ("el jueves") pasa a CLARIFY (D9, criterio estricto). El prompt no se modificó.
+**Comando:** `uv run evaluar_router.py`
+
+| # | Solicitud | Esperado | Obtenido | Origen · confianza |
+|---|---|---|---|---|
+| 1 | ¿Pueden entregar 12 EDGE-ORIN a C-1003 el jueves? | CLARIFY | CLARIFY ✅ | llm · 0.98 |
+| 2 | ¿Pueden despachar 5 PLC-S7M a C-1004 en Arequipa para el 22? | CLARIFY | CLARIFY ✅ | llm · 0.98 |
+| 3 | C-1008 necesita 6 CAM-GIGE5 para el viernes 23. | TOOLS | TOOLS ✅ | llm · 0.94 (fecha=2026-10-23) |
+| 4 | ¿Cuántas entregas tardías ha tenido Agroindustrial del Norte? | SQL | SQL ✅ | regla · 1.0 |
+| 5 | ¿Cuál es la política para un despacho extraordinario? | RAG | RAG ✅ | regla · 1.0 |
+| 6 | ¿Cuál es el plazo estándar de entrega a Piura? | RAG | RAG ✅ | llm · 0.99 |
+| 7 | Envíen 3 EDGE-NANO a C-1007 en Iquitos lo antes posible. | TOOLS | TOOLS ✅ | llm · 0.99 (fecha=None) |
+| 8 | C-1099 quiere 10 SENS-PROX para la próxima semana. | CLARIFY | CLARIFY ✅ | llm · 0.99 |
+| 9 | Necesito unos equipos para pronto. | CLARIFY | CLARIFY ✅ | llm · 0.99 |
+| 10 | Hola, ¿qué puedes hacer por mí? | DIRECT | DIRECT ✅ | regla · 1.0 (sin herramientas) |
+| 11 | ¿Qué productos le hemos vendido a C-1003 en los últimos 3 meses? | SQL | SQL ✅ | regla · 1.0 |
+| 12 | ¿Quién autoriza un envío urgente? | RAG | RAG ✅ | llm · 0.99 |
+| 13 | C-1005 necesita 4 LENS-12MM cuanto antes. | TOOLS | TOOLS ✅ | llm · 0.99 (fecha=None) |
+| 14 | ¿Pueden enviar 2 PLC-S7M a C-1006 a fin de mes? | CLARIFY | CLARIFY ✅ | llm · 0.97 |
+
+**Resultado:** 14/14 (4 por reglas, 10 por LLM). Frente a la Evidencia 12, los destinos se repiten, pero la confianza y la redacción de los motivos varían (p. ej. #3: 0.98 → 0.94): el LLM es probabilístico. **Consecuencia para la demo:** el caso base debe escribirse con fecha completa ("el jueves 15") para llegar a TOOLS. Costo ≈ 0.00077 USD.
