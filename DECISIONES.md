@@ -55,3 +55,12 @@
 - **Trade-off:** entiende sinónimos ("urgente" ≈ "extraordinario") y no requiere descargas pesadas; a cambio, depende de internet y de una API key.
 - **Riesgo:** (pendiente)
 - **En producción:** (pendiente)
+
+## D7 · Enriquecer cada chunk con el título de su documento
+
+- **Problema:** con embeddings, "¿Quién debe aprobar un despacho extraordinario?" devolvía "Cuándo aplica" en vez de "Aprobación".
+- **Alternativas:** devolver los 2 mejores chunks · enriquecer el texto de los chunks · aceptarlo como limitación.
+- **Decisión:** anteponer el título del documento a cada chunk ("Política de despacho extraordinario — Aprobación. ...").
+- **Trade-off:** corrige el caso sin agrandar la respuesta; a cambio, el margen es estrecho (0.650 vs. 0.631).
+- **Riesgo:** ¿qué error comete el sistema? La #2 ganó por solo 0.019. ¿Qué podría pasar si un cliente pregunta lo mismo con otras palabras?. Probablemente el sistema si pueda seguir reconociendo los sinónimos usando Embeddings y por ende, entendiendo el contexto de la pregunta para acercar la respuesta más acertada.
+- **En producción:** con cientos de documentos en vez de 2, ¿bastaría con agregar el título? Pista: piensa en cómo comprobarías que un cambio no empeora otras preguntas. Considero, que no es factible solo añadir el título, sería bueno añadir un subtítulo o un párrafo. Lo que debería hacerse es agregar palabras clave y palabras relacionadas que podrían acercarse a las preguntas.

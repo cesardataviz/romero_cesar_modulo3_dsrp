@@ -190,3 +190,37 @@ Fecha mínima Arequipa (2 días): 2026-10-21
 ```
 
 **Resultado:** embeddings corrige el caso de sinónimos (#4) pero también falla la #2 (la sección "Cuándo aplica" repite "despacho extraordinario"). Con embeddings ningún puntaje es 0: la #5 obtiene 0.379, así que hace falta un umbral (~0.45) entre las correctas (≥ 0.540) y la irrelevante. Con ese umbral: embeddings 4/5, TF-IDF 3/5.
+
+
+---
+
+## Hito 2 · Evidencia 9: chunks enriquecidos con el título del documento
+
+**Qué demuestra:** un cambio en el texto de los chunks corrige el error de la #2 (comparar con la Evidencia 8).
+**Cambio:** cada chunk pasa de `"Aprobación. ..."` a `"Política de despacho extraordinario — Aprobación. ..."`.
+**Comando:** `uv run rag.py`
+
+```text
+> ¿Cuál es la política para un despacho extraordinario?
+  TF-IDF     0.244 · politica_despacho_extraordinario.md § Cuándo aplica
+  Emb. top1  0.758 · politica_despacho_extraordinario.md § Cuándo aplica
+  Emb. top2  0.676 · politica_despacho_extraordinario.md § Costo
+> ¿Quién debe aprobar un despacho extraordinario?
+  TF-IDF     0.324 · politica_despacho_extraordinario.md § Cuándo aplica
+  Emb. top1  0.650 · politica_despacho_extraordinario.md § Aprobación
+  Emb. top2  0.631 · politica_despacho_extraordinario.md § Cuándo aplica
+> ¿Despachan los sábados?
+  TF-IDF     0.279 · politica_despacho.md § Días y horario de despacho
+  Emb. top1  0.583 · politica_despacho.md § Días y horario de despacho
+  Emb. top2  0.465 · politica_despacho_extraordinario.md § Rechazo
+> ¿Quién autoriza un envío urgente?
+  TF-IDF     0.235 · politica_despacho_extraordinario.md § Costo
+  Emb. top1  0.530 · politica_despacho_extraordinario.md § Aprobación
+  Emb. top2  0.494 · politica_despacho_extraordinario.md § Costo
+> ¿Cuántas entregas tardías tuvo C-1002?
+  TF-IDF     0.000 · politica_despacho.md § Días y horario de despacho
+  Emb. top1  0.386 · politica_despacho.md § Plazo estándar de entrega
+  Emb. top2  0.372 · politica_despacho.md § Capacidad diaria
+```
+
+**Resultado:** embeddings pasa de 4/5 a 5/5 (con umbral 0.45); TF-IDF sigue en 3/5. Predije "Aprobación" en top2 y quedó en top1. **Limitación:** la #2 gana por solo 0.019 y el top2 de la #3 (0.465) supera el umbral, por eso se usa solo el top1.

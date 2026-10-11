@@ -18,11 +18,12 @@ def cargar_chunks():
     chunks = []
     for archivo in sorted(POLITICAS_DIR.glob("*.md")):
         texto = archivo.read_text(encoding="utf-8")
+        titulo_doc = texto.splitlines()[0].lstrip("# ").split(" · ")[0]   # ← NUEVA
         for seccion in texto.split("\n## ")[1:]:  # [1:] salta el título '# ...' del documento
             titulo, _, contenido = seccion.partition("\n")
             chunks.append({
                 "fuente": f"{archivo.name} § {titulo.strip()}",
-                "texto": f"{titulo.strip()}. {contenido.strip()}",
+                "texto": f"{titulo_doc} — {titulo.strip()}. {contenido.strip()}",   # ← CAMBIA
             })
     return chunks
 
@@ -75,7 +76,8 @@ if __name__ == "__main__":
     ]
     for pregunta in preguntas:
         tf = buscar_tfidf(pregunta, chunks, k=1)[0]
-        em = buscar_embeddings(pregunta, chunks, vectores_chunks, k=1)[0]
+        em = buscar_embeddings(pregunta, chunks, vectores_chunks, k=2)
         print(f"\n> {pregunta}")
         print(f"  TF-IDF     {tf['puntaje']:.3f} · {tf['fuente']}")
-        print(f"  Embeddings {em['puntaje']:.3f} · {em['fuente']}")
+        for i, r in enumerate(em, start=1):
+            print(f"  Emb. top{i}  {r['puntaje']:.3f} · {r['fuente']}")
