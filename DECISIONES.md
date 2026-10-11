@@ -72,8 +72,8 @@
 - **Alternativas:** determinístico (solo reglas) · modelo (solo LLM) · híbrido.
 - **Decisión:** híbrido. Reglas para lo obvio (saludos, palabras de historial o de política); LLM (`gpt-6-luna`, salida estructurada) para el resto; si la confianza es baja o faltan datos, CLARIFY; si el LLM falla, CLARIFY.
 - **Trade-off:** barato y predecible donde se puede, flexible donde se necesita; a cambio, más piezas que mantener y explicar.
-- **Riesgo:** (pendiente)
-- **En producción:** (pendiente)
+- **Riesgo:** las reglas por palabra clave son ciegas al contexto y se evalúan en orden: "¿Cuál es la política de entregas tardías?" va a SQL (la regla de historial se revisa antes que la de política), con confianza 1.0 y sin pasar por la validación del LLM.
+- **En producción:** reglas solo para patrones inequívocos, conflictos (dos reglas a la vez) derivados al LLM, y evaluación continua con un conjunto más grande de casos reales.
 
 ## D9 · Criterio para fechas imprecisas en el router
 
@@ -81,5 +81,5 @@
 - **Alternativas:** enviar toda fecha imprecisa a CLARIFY · tratar "lo antes posible" como pedido sin fecha · interpretar todo automáticamente.
 - **Decisión (criterio estricto):** solo se aceptan fechas completas (día + mes, o día de la semana + número, p. ej. "el viernes 23"). "El jueves", "el 22", "la próxima semana", "a fin de mes" o "pronto" → CLARIFY. "Lo antes posible" / "cuanto antes" → TOOLS sin fecha: el sistema propone la fecha más cercana con `fecha_minima_entrega`. Se corrigieron las etiquetas de los casos #1, #2 y #8.
 - **Trade-off:** se evita prometer una fecha mal interpretada; a cambio, el cliente debe responder más preguntas, y el criterio vive en el prompt y depende de que el LLM lo siga. Se descartó interpretar "el jueves" o "el 22" como su próxima ocurrencia.
-- **Riesgo:** (pendiente)
-- **En producción:** (pendiente)
+- **Riesgo:** más preguntas al cliente: quien escribe "el jueves" esperando rapidez recibe una aclaración extra; repetido, el sistema se vuelve lento y molesto. Además, el criterio vive en el prompt y el LLM podría aplicarlo de forma inconsistente.
+- **En producción:** proponer la fecha interpretada para que el cliente la confirme con un clic ("¿Te refieres al jueves 15?"), en lugar de una pregunta abierta.
