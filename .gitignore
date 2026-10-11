@@ -13,3 +13,4 @@ data/*.db
 
 # Secretos (API keys)
 .env
+data/cache_embeddings.json

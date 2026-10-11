@@ -53,8 +53,9 @@
 - **Alternativas:** TF-IDF (por palabras, local) · embeddings locales · embeddings por API (Voyage AI u OpenAI).
 - **Decisión:** embeddings por API con OpenAI (`text-embedding-3-small`), porque ya tengo cuenta; TF-IDF se implementa también como línea base para comparar.
 - **Trade-off:** entiende sinónimos ("urgente" ≈ "extraordinario") y no requiere descargas pesadas; a cambio, depende de internet y de una API key.
-- **Riesgo:** (pendiente)
-- **En producción:** (pendiente)
+- **Riesgo:** sin internet, con la API caída o sin saldo, el sistema se caería con un error y no respondería ninguna pregunta de políticas.
+- **Mitigación:** si la API falla, `responder()` usa TF-IDF como respaldo automático (menos preciso, pero local).
+- **En producción:** un plan B real: proveedor alternativo de embeddings o un modelo local, reintentos solo para fallos transitorios y alertas cuando se active el respaldo.
 
 ## D7 · Enriquecer cada chunk con el título de su documento
 
@@ -62,5 +63,5 @@
 - **Alternativas:** devolver los 2 mejores chunks · enriquecer el texto de los chunks · aceptarlo como limitación.
 - **Decisión:** anteponer el título del documento a cada chunk ("Política de despacho extraordinario — Aprobación. ...").
 - **Trade-off:** corrige el caso sin agrandar la respuesta; a cambio, el margen es estrecho (0.650 vs. 0.631).
-- **Riesgo:** ¿qué error comete el sistema? La #2 ganó por solo 0.019. ¿Qué podría pasar si un cliente pregunta lo mismo con otras palabras?. Probablemente el sistema si pueda seguir reconociendo los sinónimos usando Embeddings y por ende, entendiendo el contexto de la pregunta para acercar la respuesta más acertada.
-- **En producción:** con cientos de documentos en vez de 2, ¿bastaría con agregar el título? Pista: piensa en cómo comprobarías que un cambio no empeora otras preguntas. Considero, que no es factible solo añadir el título, sería bueno añadir un subtítulo o un párrafo. Lo que debería hacerse es agregar palabras clave y palabras relacionadas que podrían acercarse a las preguntas.
+- **Riesgo:** el margen es de solo 0.019: si un cliente reformula la pregunta, "Cuándo aplica" podría volver a ganar y el sistema respondería con seguridad y equivocado, sin que nadie lo note.
+- **En producción:** con cientos de documentos no bastaría el título: se enriquecerían los chunks con metadatos (palabras clave, términos relacionados) y cada cambio se validaría contra un conjunto fijo de preguntas de evaluación para comprobar que no empeora otras.

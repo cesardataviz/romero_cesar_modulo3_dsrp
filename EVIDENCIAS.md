@@ -224,3 +224,33 @@ Fecha mínima Arequipa (2 días): 2026-10-21
 ```
 
 **Resultado:** embeddings pasa de 4/5 a 5/5 (con umbral 0.45); TF-IDF sigue en 3/5. Predije "Aprobación" en top2 y quedó en top1. **Limitación:** la #2 gana por solo 0.019 y el top2 de la #3 (0.465) supera el umbral, por eso se usa solo el top1.
+
+
+---
+
+## Hito 2 · Evidencia 10: RAG final (respuesta con fuente, umbral, costo y caché)
+
+**Qué demuestra:** `responder()` con embeddings y umbral 0.45, costo medido por llamada y caché de vectores de los chunks.
+**Comando:** `uv run rag.py` (dos veces)
+
+```text
+--- 1.ª ejecución ---
+  [costo] 615 tokens ≈ 0.000012 USD
+> ¿Cuál es la política para un despacho extraordinario?
+  [costo] 13 tokens ≈ 0.000000 USD
+  embeddings · puntaje=0.758 · politica_despacho_extraordinario.md § Cuándo aplica
+> ¿Quién debe aprobar un despacho extraordinario?
+  embeddings · puntaje=0.65 · politica_despacho_extraordinario.md § Aprobación
+> ¿Despachan los sábados?
+  embeddings · puntaje=0.583 · politica_despacho.md § Días y horario de despacho
+> ¿Quién autoriza un envío urgente?
+  embeddings · puntaje=0.53 · politica_despacho_extraordinario.md § Aprobación
+> ¿Cuántas entregas tardías tuvo C-1002?
+  embeddings · puntaje=0.386 · sin fuente → Las políticas no cubren esta pregunta.
+
+--- 2.ª ejecución ---
+  [caché] vectores de los chunks reutilizados (0 USD)
+  (mismas 5 respuestas; solo se pagan los ~60 tokens de las preguntas)
+```
+
+**Resultado:** ✅ 5/5 respuestas correctas con fuente; la pregunta de SQL se descarta por el umbral. Costo de la 1.ª ejecución ≈ 676 tokens (~0.0000135 USD); con caché, ~61 tokens por ejecución.
