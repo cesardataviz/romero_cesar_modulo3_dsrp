@@ -19,6 +19,8 @@ Las decisiones, ejecuciones y evidencias son mías.
 | Carga a SQLite | Propuesta de `cargar_datos.py` y explicación de SQL parametrizado |
 | Clasificación de solicitudes | Propuesta de solicitudes candidatas y revisión de mi clasificación |
 | Consultas SQL, Tools y Reglas | Propuesta de `consultas_sql.py`, `tools.py` y `reglas.py`, y explicación del código |
+| RAG y Router | Propuesta de `rag.py`, `router.py` y `evaluar_router.py`; verificación de modelos y precios vigentes |
+| Pruebas automáticas | Generación de las pruebas pytest en `tests/` (simulan la API, sin costo) |
 
 ## 3. Qué modifiqué yo
 
@@ -26,6 +28,7 @@ Las decisiones, ejecuciones y evidencias son mías.
 - Decidí incluir la ciudad de destino en el cálculo del plazo de entrega.
 - Clasifiqué yo las solicitudes; la IA corrigió 7 y acepté las correcciones tras entenderlas.
 - Detecté que un cliente inexistente y uno puntual daban el mismo resultado y propuse validar su existencia.
+- Elegí proveedor de embeddings, mejora de chunks, tipo de router y criterio de fechas; corregí etiquetas del router cuando el sistema tenía razón.
 
 ## 4. Cómo validé
 

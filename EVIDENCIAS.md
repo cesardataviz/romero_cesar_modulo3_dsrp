@@ -326,3 +326,21 @@ Fecha mínima Arequipa (2 días): 2026-10-21
 | 14 | ¿Pueden enviar 2 PLC-S7M a C-1006 a fin de mes? | CLARIFY | CLARIFY ✅ | llm · 0.97 |
 
 **Resultado:** 14/14 (4 por reglas, 10 por LLM). Frente a la Evidencia 12, los destinos se repiten, pero la confianza y la redacción de los motivos varían (p. ej. #3: 0.98 → 0.94): el LLM es probabilístico. **Consecuencia para la demo:** el caso base debe escribirse con fecha completa ("el jueves 15") para llegar a TOOLS. Costo ≈ 0.00077 USD.
+
+
+---
+
+## Hito 2 · Evidencia 14: pruebas automáticas (pytest)
+
+**Qué demuestra:** 26 pruebas reproducibles, sin costo (la API se simula con `monkeypatch`), sobre SQL, Tools, Reglas, RAG y Router.
+**Comando:** `uv run pytest -v`
+
+| Archivo | Pruebas | Qué cubre |
+|---|---|---|
+| `tests/test_sql.py` | 5 | entregas tardías, historial, cumplimiento, cliente inexistente vs. puntual, SQL injection |
+| `tests/test_tools.py` | 5 | stock, SKU inexistente, cliente inexistente, capacidad del jueves 15, ciudad sin tránsito |
+| `tests/test_reglas.py` | 6 | semilla 21/5/300, fecha mínima por ciudad, caso base EXCEPCION, aprobado, stock insuficiente, sábado |
+| `tests/test_rag.py` | 4 | chunking, respuesta con fuente, pregunta que no debe usar RAG, respaldo TF-IDF si la API falla |
+| `tests/test_router.py` | 6 | 3 reglas deterministas, confianza baja → CLARIFY, datos inválidos descartados, LLM caído → CLARIFY |
+
+**Resultado:** ✅ 26 passed.
