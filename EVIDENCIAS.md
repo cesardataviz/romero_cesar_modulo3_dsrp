@@ -344,3 +344,29 @@ Fecha mínima Arequipa (2 días): 2026-10-21
 | `tests/test_router.py` | 6 | 3 reglas deterministas, confianza baja → CLARIFY, datos inválidos descartados, LLM caído → CLARIFY |
 
 **Resultado:** ✅ 26 passed.
+
+
+---
+
+## Hito 3 · Evidencia 15: workflow con estado (LangGraph)
+
+**Qué demuestra:** State pequeño, 6 nodos, 2 conditional edges y una ruta que termina directamente; el diagrama lo genera LangGraph en `docs/diagrama_workflow.md`.
+**Comando:** `uv run workflow.py`
+
+| Solicitud | Nodos ejecutados | Resultado |
+|---|---|---|
+| Hola, ¿qué puedes hacer por mí? | enrutar → atender_consulta | **Ruta directa**: DIRECT, sin herramientas ni LLM |
+| C-1003 necesita 12 EDGE-ORIN para el jueves 15 de octubre | enrutar → validar_datos → consultar_estado → evaluar → responder | **EXCEPCION**: fecha anterior a la mínima (2026-10-19) y capacidad insuficiente (9 libres) |
+| C-1004 necesita 5 PLC-S7M en Arequipa para el jueves 22 de octubre | enrutar → validar_datos → consultar_estado → evaluar → responder | **APROBADO** (tránsito 2 días, stock 10, 12 libres) |
+| C-1099 quiere 10 SENS-PROX para el lunes 19 de octubre | enrutar → validar_datos → responder | **DATOS_INVALIDOS**: cliente inexistente; no se consulta stock ni se evalúan reglas |
+
+```text
+=== C-1003 necesita 12 EDGE-ORIN para el jueves 15 de octubre.
+  [enrutar] {'destino': 'TOOLS', 'cliente_id': 'C-1003', 'sku': 'EDGE-ORIN', 'cantidad': 12, 'fecha': '2026-10-15'}
+  [validar_datos] {'dias_transito': 0}
+  [consultar_estado] {'stock': 18, 'libres': 9}
+  [evaluar] {'decision': 'EXCEPCION', 'motivos': ['Fecha pedida 2026-10-15 es anterior a la mínima 2026-10-19', 'Capacidad insuficiente: pide 12, quedan 9 libres']}
+  [responder] {'respuesta': 'No podemos confirmar 12 EDGE-ORIN para C-1003 el 2026-10-15 sin aprobación del Supervisor de logística (despacho extraordinario: 300 USD). ...'}
+```
+
+**Resultado:** ✅ las 4 rutas se comportan según el diseño. Costo ≈ 0.00024 USD (3 llamadas al router; el saludo lo resuelve una regla).

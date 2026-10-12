@@ -34,20 +34,19 @@ flowchart TD
     R -.->|clasificación| OAI
 
     subgraph PLAN["En construcción"]
-        LG["Workflow con estado · LangGraph<br/>(Hito 3)"]
         HI["Checkpoint · interrupt() · retry<br/>(Hito 4)"]
         MCP["Servidor MCP · stdio<br/>(Hito 5)"]
     end
 
     classDef pendiente stroke-dasharray: 5 5
-    class H,LG,HI,MCP pendiente
+    class H,HI,MCP pendiente
 ```
 
 | Tipo de decisión | Responsable | Ejemplo |
 |---|---|---|
 | Determinista | Python (`reglas.py`, reglas del router) | 12 unidades > 9 libres → excepción |
 | Semántica | Router (reglas + LLM) | ¿La consulta es de política, historial o pedido? |
-| Proceso | LangGraph *(Hito 3)* | ¿Qué paso sigue y qué estado se conserva? |
+| Proceso | LangGraph (`workflow.py`) | ¿Qué paso sigue y qué estado se conserva? |
 | Integración | MCP *(Hito 5)* | Exponer stock y capacidad a otras aplicaciones |
 
 ## Parámetros del caso (semilla 9911)
@@ -94,6 +93,7 @@ uv run tools.py                # Tools de estado actual
 uv run reglas.py               # reglas de negocio
 uv run rag.py                  # RAG sobre las políticas (usa la API)
 uv run evaluar_router.py       # evaluación del router: 14 casos (usa la API)
+uv run workflow.py             # workflow LangGraph de punta a punta (usa la API)
 uv run pytest -v               # 26 pruebas automáticas (sin costo: la API se simula)
 ```
 
@@ -115,12 +115,14 @@ romero_cesar_modulo3/
 ├── rag.py                    # RAG sobre las políticas
 ├── router.py                 # router híbrido
 ├── evaluar_router.py         # casos de evaluación del router
+├── workflow.py               # workflow con estado (LangGraph)
 ├── conftest.py               # preparación de las pruebas
 ├── data/
 │   ├── *.csv                 # clientes, ciudades, productos, inventario, ventas, despachos
 │   └── politicas/            # política de despacho y de despacho extraordinario
 ├── docs/
-│   └── clasificacion_solicitudes.md
+│   ├── clasificacion_solicitudes.md
+│   └── diagrama_workflow.md  # diagrama generado por LangGraph
 ├── tests/                    # pruebas pytest
 ├── HITOS.md
 ├── EVIDENCIAS.md
@@ -136,9 +138,9 @@ Archivos generados que no se versionan: `.env`, `data/andessupply.db`, `data/cac
 |---|---|
 | 1 · Separar responsabilidades | ✅ |
 | 2 · Router + RAG + SQL + Tools | ✅ |
-| 3 · Workflow con estado (LangGraph) | 🟡 en curso |
-| 4 · Retry, checkpoint y HITL | ⚪ |
+| 3 · Workflow con estado (LangGraph) | ✅ |
+| 4 · Retry, checkpoint y HITL | 🟡 siguiente |
 | 5 · MCP | ⚪ |
 | 6 · Integración y reflexión | ⚪ |
 
-Detalle en [HITOS.md](HITOS.md), decisiones en [DECISIONES.md](DECISIONES.md) y evidencias en [EVIDENCIAS.md](EVIDENCIAS.md).
+Diagrama del grafo en [docs/diagrama_workflow.md](docs/diagrama_workflow.md). Detalle en [HITOS.md](HITOS.md), decisiones en [DECISIONES.md](DECISIONES.md) y evidencias en [EVIDENCIAS.md](EVIDENCIAS.md).

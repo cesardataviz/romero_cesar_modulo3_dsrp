@@ -83,3 +83,12 @@
 - **Trade-off:** se evita prometer una fecha mal interpretada; a cambio, el cliente debe responder más preguntas, y el criterio vive en el prompt y depende de que el LLM lo siga. Se descartó interpretar "el jueves" o "el 22" como su próxima ocurrencia.
 - **Riesgo:** más preguntas al cliente: quien escribe "el jueves" esperando rapidez recibe una aclaración extra; repetido, el sistema se vuelve lento y molesto. Además, el criterio vive en el prompt y el LLM podría aplicarlo de forma inconsistente.
 - **En producción:** proponer la fecha interpretada para que el cliente la confirme con un clic ("¿Te refieres al jueves 15?"), en lugar de una pregunta abierta.
+
+## D10 · State pequeño para el workflow
+
+- **Problema:** decidir qué datos viajan entre los nodos del grafo y se guardarán en cada checkpoint (Hito 4).
+- **Alternativas:** guardar todo lo disponible (ventas, chunks, prompts, vectores) · guardar solo lo que un nodo posterior o una bifurcación necesita.
+- **Decisión:** 12 campos pequeños (solicitud, destino, datos del pedido, tránsito, stock, libres, decisión, motivos, respuesta); nada grande, nada secreto, nada que se pueda volver a consultar.
+- **Trade-off:** checkpoints livianos y sin secretos; a cambio, algunos datos deben volver a consultarse cuando hagan falta.
+- **Riesgo:** `stock` y `libres` son una foto del momento: si el flujo se pausa y el supervisor responde horas después, podrían estar desactualizados y confirmarse una entrega imposible.
+- **En producción:** volver a consultar stock y capacidad al reanudar, antes de confirmar; y registrar en el State solo identificadores para auditar, no datos sensibles.

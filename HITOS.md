@@ -29,7 +29,29 @@
 - **¿Qué ocurre si el router tiene baja confianza?** Si el LLM informa confianza < 0.7, `validar()` envía la solicitud a CLARIFY: se pide aclaración al usuario en vez de adivinar o ejecutar herramientas.
 - **¿Cuál es el costo de enviar toda pregunta a todas las herramientas?** Más dinero y más tiempo por pregunta, ineficiencia en preguntas simples (saludos, aclaraciones) y respuestas contradictorias entre fuentes que hacen más difícil decidir.
 
-## Hito 3 · Workflow con estado — ⚪ pendiente
+## Hito 3 · Workflow con estado — ✅ completado
+
+**State del workflow** (pequeño a propósito: va solo lo que un nodo posterior o una bifurcación necesita leer, si es pequeño y no es secreto):
+
+| Campo | Para qué sirve | Quién lo escribe → quién lo lee |
+|---|---|---|
+| `solicitud` | texto original del cliente | entrada → router |
+| `destino` | RAG / SQL / TOOLS / CLARIFY / DIRECT | router → bifurcación tras el router |
+| `cliente_id`, `sku`, `cantidad`, `fecha` | datos del pedido | router → validación, Tools y Reglas |
+| `dias_transito` | días de envío a la ciudad del cliente | validación → Reglas (fecha mínima y de despacho) |
+| `stock`, `libres` | stock y capacidad libre del día de despacho | Tools → Reglas. Son una foto del momento: al reanudar (Hito 4) se vuelven a consultar |
+| `decision`, `motivos` | APROBADO / EXCEPCION / RECHAZADO / DATOS_INVALIDOS y por qué | Reglas → bifurcación, supervisor y auditoría |
+| `respuesta` | texto final para el usuario | último nodo → salida |
+
+- **Qué se construyó:** `workflow.py` con 6 nodos (enrutar, validar_datos, consultar_estado, evaluar, responder, atender_consulta) y 2 conditional edges (¿es un pedido? · ¿datos válidos?). La excepción todavía termina en `responder`; en el Hito 4 irá al supervisor con `interrupt()`.
+- **Evidencia:** EVIDENCIAS.md · Evidencia 15; diagrama en `docs/diagrama_workflow.md`.
+
+**No van al State:** todas las ventas del cliente y el texto de los chunks (grandes y se pueden volver a consultar), la API key (quedaría escrita en disco con el checkpoint), el prompt y la respuesta cruda del LLM, y los vectores de embeddings (muy grandes e innecesarios para los nodos siguientes).
+**Preguntas de razonamiento**
+- **¿Por qué no basta una cadena de if/else?** Porque el proceso debe poder pausarse a mitad del camino (excepción → supervisor), guardar su estado y continuar horas después con el mismo `id_hilo`; un if/else no puede hacerlo. Además, el grafo permite reintentar solo el paso que falla, deja trazabilidad de cada nodo y se modifica agregando nodos sin reescribir condiciones anidadas.
+- **¿Qué información necesita sobrevivir de un nodo a otro?** La solicitud y los datos del pedido (destino, cliente, SKU, cantidad, fecha), lo que producen los nodos intermedios (días de tránsito, stock, capacidad libre) y, sobre todo, la decisión y sus motivos, que leen la bifurcación y el supervisor.
+- **¿Qué campo del State sería innecesario o peligroso guardar?** Peligroso: la API key (quedaría escrita en disco con el checkpoint). Innecesario: todas las ventas del cliente, los chunks y los vectores (grandes y se pueden volver a consultar). Riesgoso: `stock` y `libres`, que pueden quedar desactualizados al reanudar.
+
 ## Hito 4 · Retry, checkpoint y HITL — ⚪ pendiente
 ## Hito 5 · MCP — ⚪ pendiente
 ## Hito 6 · Integración y reflexión — ⚪ pendiente
