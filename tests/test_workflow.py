@@ -1,4 +1,5 @@
 # Pruebas del workflow (§12): ruta directa, ruta HITL, aprobar y rechazar. El router LLM se simula.
+import openai
 import pytest
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
@@ -60,3 +61,34 @@ def test_respuesta_no_valida_del_supervisor_no_autoriza(app):
     app.invoke({"solicitud": CASO_BASE}, config("t-invalida"))
     final = app.invoke(Command(resume="quizás"), config("t-invalida"))
     assert final["aprobacion"] == "rechazar"
+
+
+def test_fallo_transitorio_se_reintenta_y_continua(monkeypatch):
+    intentos = []
+
+    def falla_dos_veces(solicitud):
+        intentos.append(1)
+        if len(intentos) < 3:
+            raise openai.APIConnectionError(request=None)
+        return Decision(destino="TOOLS", confianza=0.95, cliente_id="C-1003", sku="EDGE-ORIN",
+                        cantidad=12, fecha="2026-10-15", motivo="simulado")
+
+    monkeypatch.setattr(router, "clasificar_con_llm", falla_dos_veces)
+    app = workflow.construir_workflow(InMemorySaver())
+    app.invoke({"solicitud": CASO_BASE}, config("t-retry"))
+    assert len(intentos) == 3  # 2 fallos + 1 éxito
+    assert app.get_state(config("t-retry")).next == ("supervisor",)
+
+
+def test_regla_de_negocio_rechazada_sin_retry(monkeypatch):
+    monkeypatch.setattr(router, "clasificar_con_llm", lambda s: Decision(
+        destino="TOOLS", confianza=0.95, cliente_id="C-1008", sku="CAM-GIGE5",
+        cantidad=6, fecha="2026-10-23", motivo="simulado"))
+    evaluaciones = []
+    original = workflow.evaluar_pedido
+    monkeypatch.setattr(workflow, "evaluar_pedido",
+                        lambda *a, **k: evaluaciones.append(1) or original(*a, **k))
+    app = workflow.construir_workflow(InMemorySaver())
+    final = app.invoke({"solicitud": "C-1008 necesita 6 CAM-GIGE5 para el viernes 23."}, config("t-regla"))
+    assert final["decision"] == "RECHAZADO"
+    assert len(evaluaciones) == 1  # la regla se evalúa una sola vez: no hay reintento

@@ -99,5 +99,14 @@
 - **Alternativas:** responder "requiere aprobación" y terminar · pausar con `interrupt()` en memoria · pausar con checkpoint persistente en SQLite.
 - **Decisión:** `interrupt()` en el nodo `supervisor` con checkpoint en `data/checkpoints.db`; se reanuda con el mismo `id_hilo` desde otro proceso. Sin side effects antes de `interrupt()`. Si aprueba, se vuelve a consultar el stock antes de confirmar; si rechaza, se ofrece la fecha estándar más cercana con capacidad. Una respuesta no válida del supervisor se trata como rechazo.
 - **Trade-off:** el proceso sobrevive a reinicios y queda auditable; a cambio, hay un archivo de estado más que administrar y un nodo que se re-ejecuta al reanudar.
-- **Riesgo:** (pendiente)
-- **En producción:** (pendiente)
+- **Riesgo:** el sistema acepta cualquier `id_hilo` válido sin confirmar a qué pedido corresponde: si el supervisor se equivoca de expediente, se aprueba (y se paga) un despacho que nadie pidió y el pedido real queda pausado, con el cliente insatisfecho. Además, un pedido puede quedar pausado indefinidamente si el supervisor nunca responde.
+- **En producción:** mostrar el resumen del pedido y pedir confirmación antes de aplicar la decisión; autenticar quién puede aprobar; plazo máximo de espera con recordatorio o escalamiento; notificaciones enviadas después de la pausa y de forma idempotente; registro de auditoría de cada aprobación.
+
+## D12 · Retry solo para fallos transitorios del LLM
+
+- **Problema:** el router atrapaba todos los errores de OpenAI y devolvía CLARIFY, así que un corte de red momentáneo nunca se reintentaba ("se tragaba" el error).
+- **Alternativas:** retry en todo el grafo · retry de la librería `openai` (2 internos) · `RetryPolicy` solo en el nodo `enrutar` con un filtro de errores.
+- **Decisión:** `RetryPolicy(max_attempts=3)` solo en `enrutar`, con `es_fallo_transitorio`: se reintentan corte de red, tiempo agotado, servidor caído y límite de solicitudes; no se reintentan clave inválida ni falta de saldo (`insufficient_quota`), que van a CLARIFY. La librería no reintenta (`max_retries=0`) para tener una sola capa de reintentos. Las reglas de negocio y los datos inválidos nunca se reintentan. Para la demo, `--fallos N` provoca N cortes simulados.
+- **Trade-off:** se recupera solo de fallos momentáneos; a cambio, la solicitud tarda más (esperas de 0,5 s y 1 s) y hay que mantener la clasificación de errores.
+- **Riesgo:** si OpenAI sigue caído tras los 3 intentos, el cliente espera casi 2 s y recibe un "intenta más tarde": puede irse y se pierde el pedido. Además, si muchas solicitudes reintentan a la vez contra un servidor saturado, lo empeoran (las esperas crecientes con variación aleatoria lo mitigan).
+- **En producción:** modelo o proveedor de respaldo cuando el principal no responde; reintentos diferidos del mismo `id_hilo` desde el checkpoint cuando el servicio vuelva, sin que el cliente repita su solicitud; y alertas si la caída se prolonga.

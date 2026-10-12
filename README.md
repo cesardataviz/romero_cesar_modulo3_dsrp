@@ -12,7 +12,7 @@ El agente recibe solicitudes en lenguaje natural y decide si AndesSupply puede *
 
 ```mermaid
 flowchart TD
-    U["Usuario / vendedor<br/>(lenguaje natural)"] --> R{"Router híbrido<br/>router.py<br/>reglas + LLM validado"}
+    U["Usuario / vendedor<br/>(lenguaje natural)"] --> R{"Router híbrido<br/>router.py<br/>reglas + LLM validado<br/>retry de fallos transitorios"}
 
     R -->|RAG| RAG["RAG · rag.py<br/>embeddings + umbral<br/>TF-IDF de respaldo"]
     R -->|SQL| SQL["SQL parametrizado<br/>consultas_sql.py"]
@@ -34,12 +34,11 @@ flowchart TD
     R -.->|clasificación| OAI
 
     subgraph PLAN["En construcción"]
-        HI["RetryPolicy<br/>(Hito 4)"]
         MCP["Servidor MCP · stdio<br/>(Hito 5)"]
     end
 
     classDef pendiente stroke-dasharray: 5 5
-    class HI,MCP pendiente
+    class MCP pendiente
 ```
 
 | Tipo de decisión | Responsable | Ejemplo |
@@ -96,7 +95,8 @@ uv run evaluar_router.py       # evaluación del router: 14 casos (usa la API)
 uv run workflow.py iniciar LOG009-0001 "C-1003 necesita 12 EDGE-ORIN para el jueves 15 de octubre."
 uv run workflow.py estado LOG009-0001             # State guardado en el checkpoint
 uv run workflow.py reanudar LOG009-0001 aprobar   # o rechazar (decisión del supervisor)
-uv run pytest -v               # 32 pruebas automáticas (sin costo: la API se simula)
+uv run workflow.py iniciar LOG009-0003 "..." --fallos 2   # simula 2 cortes de red: retry y continúa
+uv run pytest -v               # 36 pruebas automáticas (sin costo: la API se simula)
 ```
 
 ## Estructura
@@ -141,8 +141,8 @@ Archivos generados que no se versionan: `.env`, `data/andessupply.db`, `data/che
 | 1 · Separar responsabilidades | ✅ |
 | 2 · Router + RAG + SQL + Tools | ✅ |
 | 3 · Workflow con estado (LangGraph) | ✅ |
-| 4 · Retry, checkpoint y HITL | 🟡 siguiente |
-| 5 · MCP | ⚪ |
+| 4 · Retry, checkpoint y HITL | ✅ |
+| 5 · MCP | 🟡 siguiente |
 | 6 · Integración y reflexión | ⚪ |
 
 Diagrama del grafo en [docs/diagrama_workflow.md](docs/diagrama_workflow.md). Detalle en [HITOS.md](HITOS.md), decisiones en [DECISIONES.md](DECISIONES.md) y evidencias en [EVIDENCIAS.md](EVIDENCIAS.md).

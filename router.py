@@ -16,6 +16,7 @@ load_dotenv()  # lee .env y carga OPENAI_API_KEY
 MODELO_ROUTER = "gpt-6-luna"
 PRECIO_ENTRADA, PRECIO_SALIDA = 0.10, 0.50  # USD por millón de tokens (gpt-6-luna)
 CONFIANZA_MINIMA = 0.7
+SIMULAR_FALLOS = 0  # fallos de conexión a provocar a propósito (demo del Hito 4: workflow.py --fallos N)
 
 PATRON_CLIENTE = re.compile(r"\bC-\d{4}\b")
 PATRON_SALUDO = re.compile(r"^\s*(hola|buenos días|buenas tardes|buenas noches|buenas)\b")
@@ -66,9 +67,21 @@ def aplicar_reglas(solicitud):
     return None
 
 
+def es_fallo_transitorio(error):
+    """True si reintentar puede funcionar: corte de red, tiempo agotado, servidor caído o límite de solicitudes."""
+    if isinstance(error, openai.RateLimitError):
+        return error.code != "insufficient_quota"  # sin saldo: reintentar no sirve
+    return isinstance(error, (openai.APIConnectionError, openai.InternalServerError))
+
+
 def clasificar_con_llm(solicitud):
     """Pide al LLM destino + datos en un formato fijo (Decision) e informa el costo."""
-    cliente = OpenAI()
+    global SIMULAR_FALLOS
+    if SIMULAR_FALLOS > 0:
+        SIMULAR_FALLOS -= 1
+        print(f"  [fallo simulado] sin conexión con OpenAI (quedan {SIMULAR_FALLOS} fallos por provocar)")
+        raise openai.APIConnectionError(request=None)
+    cliente = OpenAI(max_retries=0)  # el reintento lo controla el workflow (RetryPolicy), no la librería
     respuesta = cliente.responses.parse(
         model=MODELO_ROUTER,
         instructions=INSTRUCCIONES,
@@ -103,11 +116,17 @@ def validar(decision):
 
 
 def enrutar(solicitud):
-    """Punto de entrada: reglas primero; si no aplican, LLM validado; si el LLM falla, CLARIFY."""
+    """Punto de entrada: reglas primero; si no aplican, LLM validado.
+
+    Fallo transitorio del LLM: se deja pasar para que el workflow lo reintente (RetryPolicy).
+    Fallo permanente (clave inválida, sin saldo): no se reintenta y se detiene en CLARIFY.
+    """
     por_regla = aplicar_reglas(solicitud)
     if por_regla:
         return por_regla
     try:
         return validar(clasificar_con_llm(solicitud))
     except openai.OpenAIError as error:
+        if es_fallo_transitorio(error):
+            raise
         return resultado("CLARIFY", "respaldo", 0.0, f"LLM no disponible ({type(error).__name__})")

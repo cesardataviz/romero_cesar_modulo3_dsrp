@@ -417,3 +417,41 @@ id_hilo=LOG009-0001 · siguiente paso: ('supervisor',)
 **5. Pruebas** — `uv run pytest` → **32 passed** (incluye `tests/test_workflow.py`: ruta directa, pausa, aprobar, rechazar, otro `id_hilo` y respuesta no válida del supervisor).
 
 **Resultado:** ✅ predije los nodos de la aprobación (supervisor → reverificar → responder). LOG009-0001 guardó 9 checkpoints y LOG009-0002, 8 (no pasó por `reverificar`).
+
+
+---
+
+## Hito 4 · Evidencia 17: fallo técnico con retry vs. regla de negocio sin retry
+
+**Qué demuestra:** el `RetryPolicy` solo actúa sobre fallos transitorios del LLM (nodo `enrutar`); una regla de negocio rechazada no se reintenta.
+
+**1. Fallo transitorio provocado** — `uv run workflow.py iniciar LOG009-0003 "C-1003 necesita 12 EDGE-ORIN para el jueves 15 de octubre." --fallos 2`
+
+```text
+  [fallo simulado] sin conexión con OpenAI (quedan 1 fallos por provocar)
+  [fallo simulado] sin conexión con OpenAI (quedan 0 fallos por provocar)
+  [costo] 444+64 tokens ≈ 0.000076 USD
+  [enrutar] {'destino': 'TOOLS', 'cliente_id': 'C-1003', 'sku': 'EDGE-ORIN', 'cantidad': 12, 'fecha': '2026-10-15'}
+  [validar_datos] {'dias_transito': 0}
+  [consultar_estado] {'stock': 18, 'libres': 9}
+  [evaluar] {'decision': 'EXCEPCION', ...}
+  [PAUSA] Flujo pausado · id_hilo=LOG009-0003
+```
+
+2 intentos fallidos + 1 exitoso: solo se reintentó `enrutar`, los intentos fallidos no tuvieron costo y el flujo continuó hasta la pausa del supervisor.
+
+**2. Regla de negocio rechazada sin retry** — `uv run workflow.py iniciar LOG009-0004 "C-1008 necesita 6 CAM-GIGE5 para el viernes 23 de octubre."`
+
+```text
+  [enrutar] {'destino': 'TOOLS', 'cliente_id': 'C-1008', 'sku': 'CAM-GIGE5', 'cantidad': 6, 'fecha': '2026-10-23'}
+  [validar_datos] {'dias_transito': 3}
+  [consultar_estado] {'stock': 4, 'libres': 12}
+  [evaluar] {'decision': 'RECHAZADO', 'motivos': ['Stock insuficiente: pide 6, hay 4']}
+  [responder] → No podemos comprometer la entrega de 6 CAM-GIGE5 para C-1008: Stock insuficiente: pide 6, hay 4.
+```
+
+Una sola evaluación: reintentar no cambiaría el stock.
+
+**3. Pruebas** — `uv run pytest` → **36 passed** (incluye fallo transitorio que no se traga, fallo permanente → CLARIFY, clasificación de errores, 2 fallos + 1 éxito, y regla evaluada una sola vez).
+
+**Resultado:** ✅ predije ambas: sin reintento en la regla, rechazo decidido en `evaluar`.

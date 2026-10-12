@@ -52,10 +52,17 @@
 - **¿Qué información necesita sobrevivir de un nodo a otro?** La solicitud y los datos del pedido (destino, cliente, SKU, cantidad, fecha), lo que producen los nodos intermedios (días de tránsito, stock, capacidad libre) y, sobre todo, la decisión y sus motivos, que leen la bifurcación y el supervisor.
 - **¿Qué campo del State sería innecesario o peligroso guardar?** Peligroso: la API key (quedaría escrita en disco con el checkpoint). Innecesario: todas las ventas del cliente, los chunks y los vectores (grandes y se pueden volver a consultar). Riesgoso: `stock` y `libres`, que pueden quedar desactualizados al reanudar.
 
-## Hito 4 · Retry, checkpoint y HITL — 🟡 en curso
+## Hito 4 · Retry, checkpoint y HITL — ✅ completado
 
-- **Qué se construyó:** nodo `supervisor` con `interrupt()`, checkpoint persistente en SQLite (`data/checkpoints.db`), reanudación con el mismo `id_hilo` desde otro proceso (`iniciar` / `estado` / `reanudar`), nodo `reverificar` que vuelve a consultar el stock al aprobar, y fecha estándar alternativa al rechazar. 8 nodos y 4 conditional edges.
-- **Evidencia:** EVIDENCIAS.md · Evidencia 16 (pausa, estado, aprobación, rechazo); 32 pruebas.
-- **Pendiente:** RetryPolicy en una dependencia transitoria, fallo transitorio provocado y regla de negocio rechazada sin retry.
+- **Qué se construyó:** nodo `supervisor` con `interrupt()`, checkpoint persistente en SQLite (`data/checkpoints.db`), reanudación con el mismo `id_hilo` desde otro proceso (`iniciar` / `estado` / `reanudar`), nodo `reverificar` que vuelve a consultar el stock al aprobar, y fecha estándar alternativa al rechazar. 8 nodos y 4 conditional edges. `RetryPolicy` solo en `enrutar`, con filtro de errores transitorios (`es_fallo_transitorio`) y simulación de cortes (`--fallos N`).
+- **Qué falló:** el router atrapaba todos los errores de OpenAI y devolvía CLARIFY: el retry nunca se habría activado (el error se "tragaba"). Además, la librería `openai` reintentaba por su cuenta, lo que sumado al `RetryPolicy` daba hasta 9 intentos ocultos.
+- **Qué aprendí:** el retry solo sirve si el error llega al workflow; un 429 puede ser transitorio (límite de solicitudes) o permanente (sin saldo) y hay que mirar su código.
+- **Evidencia:** EVIDENCIAS.md · Evidencias 16 (pausa, estado, aprobación, rechazo) y 17 (retry vs. regla sin retry); 36 pruebas.
+
+**Preguntas de razonamiento**
+- **¿Qué error merece retry y cuál no?** Merecen retry los fallos transitorios, donde esperar y repetir puede dar otro resultado: corte de internet, tiempo agotado, servidor caído o límite de solicitudes. No lo merecen la clave inválida, la falta de saldo, una regla de negocio rechazada (el stock seguirá siendo 4) ni un dato inválido (el cliente seguirá sin existir).
+- **¿Qué se pierde si no existe checkpoint?** El estado vive solo en memoria: si el programa se cierra mientras espera al supervisor, el pedido pausado desaparece, su respuesta no tiene a dónde llegar, hay que repetir todo (incluido el router, que cuesta) y no queda registro de lo decidido.
+- **¿Por qué un side effect antes de `interrupt()` puede ser peligroso?** Porque al reanudar el nodo se ejecuta de nuevo desde la primera línea: un correo se enviaría dos veces; una reserva de capacidad o un cobro de 300 USD se duplicarían.
+- **¿Qué pasa si se reanuda con otro `id_hilo`?** Si no existe, no hay nada que reanudar. Si existe pero es otro pedido, se aprueba (y se paga) un despacho que nadie pidió y el pedido real queda pausado indefinidamente: el sistema no puede detectarlo, por eso conviene confirmar el resumen del pedido antes de aplicar la decisión.
 ## Hito 5 · MCP — ⚪ pendiente
 ## Hito 6 · Integración y reflexión — ⚪ pendiente

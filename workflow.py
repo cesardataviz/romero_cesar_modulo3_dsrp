@@ -11,16 +11,21 @@ from typing import TypedDict
 import openai
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
-from langgraph.types import Command, interrupt
+from langgraph.types import Command, RetryPolicy, interrupt
 
 import rag
+import router
 from config_caso import CASO_ID, SEMILLA, costo_extraordinario
 from consultas_sql import cumplimiento_entregas, entregas_tardias
 from reglas import evaluar_pedido, fecha_despacho, fecha_minima_entrega, sumar_dias_habiles
-from router import enrutar
+from router import enrutar, es_fallo_transitorio
 from tools import consultar_capacidad, consultar_cliente, consultar_stock, consultar_transito
 
 CHECKPOINT_PATH = Path(__file__).parent / "data" / "checkpoints.db"
+
+# Retry SOLO para la dependencia transitoria (la API del LLM en el nodo enrutar).
+# Las reglas de negocio y los datos inválidos nunca se reintentan.
+REINTENTO_LLM = RetryPolicy(max_attempts=3, initial_interval=0.5, retry_on=es_fallo_transitorio)
 
 
 class Estado(TypedDict, total=False):
@@ -199,7 +204,7 @@ def ruta_tras_supervisor(estado):
 
 def construir_workflow(checkpointer=None):
     grafo = StateGraph(Estado)
-    grafo.add_node("enrutar", nodo_enrutar)
+    grafo.add_node("enrutar", nodo_enrutar, retry_policy=REINTENTO_LLM)
     grafo.add_node("validar_datos", nodo_validar_datos)
     grafo.add_node("consultar_estado", nodo_consultar_estado)
     grafo.add_node("evaluar", nodo_evaluar)
@@ -261,7 +266,11 @@ def iniciar(app, id_hilo, solicitud):
         print(f"Ya existe un flujo con id_hilo={id_hilo}. Usa otro id_hilo.")
         return
     print(f"=== [{id_hilo}] {solicitud}")
-    mostrar_pasos(app, {"solicitud": solicitud}, config)
+    try:
+        mostrar_pasos(app, {"solicitud": solicitud}, config)
+    except openai.OpenAIError as error:
+        print(f"  [ERROR] Fallo técnico persistente tras {REINTENTO_LLM.max_attempts} intentos "
+              f"({type(error).__name__}). Intenta más tarde.")
 
 
 def reanudar(app, id_hilo, decision_supervisor):
@@ -288,7 +297,7 @@ def ver_estado(app, id_hilo):
 
 
 USO = """Uso:
-  uv run workflow.py iniciar <id_hilo> "<solicitud>"
+  uv run workflow.py iniciar <id_hilo> "<solicitud>" [--fallos N]   (N: fallos de conexión simulados)
   uv run workflow.py reanudar <id_hilo> aprobar|rechazar
   uv run workflow.py estado <id_hilo>
   uv run workflow.py diagrama"""
@@ -297,6 +306,10 @@ if __name__ == "__main__":
     print(f"{CASO_ID} · semilla {SEMILLA}")
     app = abrir_workflow()
     argumentos = sys.argv[1:]
+    if "--fallos" in argumentos:
+        i = argumentos.index("--fallos")
+        router.SIMULAR_FALLOS = int(argumentos[i + 1])
+        del argumentos[i:i + 2]
     if len(argumentos) == 3 and argumentos[0] == "iniciar":
         iniciar(app, argumentos[1], argumentos[2])
     elif len(argumentos) == 3 and argumentos[0] == "reanudar":

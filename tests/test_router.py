@@ -1,4 +1,5 @@
 # Pruebas del router sin llamar a la API: las reglas son deterministas y el LLM se simula.
+import httpx2
 import openai
 import pytest
 
@@ -35,10 +36,31 @@ def test_datos_invalidos_del_llm_se_descartan(monkeypatch):
     assert r["destino"] == "TOOLS"  # sigue teniendo SKU
 
 
-def test_si_el_llm_falla_se_detiene_en_clarify(monkeypatch):
-    def llm_caido(solicitud):
+def error_api(clase, status, codigo=None):
+    respuesta = httpx2.Response(status, request=httpx2.Request("POST", "https://api.openai.com/v1/responses"))
+    return clase("simulado", response=respuesta, body={"code": codigo})
+
+
+def test_fallo_transitorio_no_se_traga_para_poder_reintentar(monkeypatch):
+    def sin_conexion(solicitud):
         raise openai.APIConnectionError(request=None)
 
-    monkeypatch.setattr(router, "clasificar_con_llm", llm_caido)
+    monkeypatch.setattr(router, "clasificar_con_llm", sin_conexion)
+    with pytest.raises(openai.APIConnectionError):
+        router.enrutar("C-1008 necesita 6 CAM-GIGE5 para el viernes 23.")
+
+
+def test_fallo_permanente_se_detiene_en_clarify(monkeypatch):
+    def clave_invalida(solicitud):
+        raise error_api(openai.AuthenticationError, 401)
+
+    monkeypatch.setattr(router, "clasificar_con_llm", clave_invalida)
     r = router.enrutar("C-1008 necesita 6 CAM-GIGE5 para el viernes 23.")
     assert (r["destino"], r["origen"]) == ("CLARIFY", "respaldo")
+
+
+def test_clasificacion_de_errores_para_retry():
+    assert router.es_fallo_transitorio(openai.APIConnectionError(request=None)) is True
+    assert router.es_fallo_transitorio(error_api(openai.RateLimitError, 429, "rate_limit_exceeded")) is True
+    assert router.es_fallo_transitorio(error_api(openai.RateLimitError, 429, "insufficient_quota")) is False
+    assert router.es_fallo_transitorio(error_api(openai.AuthenticationError, 401)) is False
