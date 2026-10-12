@@ -23,7 +23,7 @@ flowchart TD
     T --> RG{"Reglas de negocio<br/>reglas.py"}
     RG -->|APROBADO| OK["Confirmar fecha"]
     RG -->|RECHAZADO| NO["Rechazar con motivo"]
-    RG -->|EXCEPCION| H[["HITL · Supervisor de logística<br/>aprobar / rechazar"]]
+    RG -->|EXCEPCION| H[["HITL · Supervisor de logística<br/>interrupt() + checkpoint SQLite<br/>aprobar / rechazar"]]
 
     RAG --> DOCS[("data/politicas/*.md")]
     SQL --> DB[("SQLite<br/>andessupply.db")]
@@ -34,12 +34,12 @@ flowchart TD
     R -.->|clasificación| OAI
 
     subgraph PLAN["En construcción"]
-        HI["Checkpoint · interrupt() · retry<br/>(Hito 4)"]
+        HI["RetryPolicy<br/>(Hito 4)"]
         MCP["Servidor MCP · stdio<br/>(Hito 5)"]
     end
 
     classDef pendiente stroke-dasharray: 5 5
-    class H,HI,MCP pendiente
+    class HI,MCP pendiente
 ```
 
 | Tipo de decisión | Responsable | Ejemplo |
@@ -93,8 +93,10 @@ uv run tools.py                # Tools de estado actual
 uv run reglas.py               # reglas de negocio
 uv run rag.py                  # RAG sobre las políticas (usa la API)
 uv run evaluar_router.py       # evaluación del router: 14 casos (usa la API)
-uv run workflow.py             # workflow LangGraph de punta a punta (usa la API)
-uv run pytest -v               # 26 pruebas automáticas (sin costo: la API se simula)
+uv run workflow.py iniciar LOG009-0001 "C-1003 necesita 12 EDGE-ORIN para el jueves 15 de octubre."
+uv run workflow.py estado LOG009-0001             # State guardado en el checkpoint
+uv run workflow.py reanudar LOG009-0001 aprobar   # o rechazar (decisión del supervisor)
+uv run pytest -v               # 32 pruebas automáticas (sin costo: la API se simula)
 ```
 
 ## Estructura
@@ -130,7 +132,7 @@ romero_cesar_modulo3/
 └── USO_IA.md
 ```
 
-Archivos generados que no se versionan: `.env`, `data/andessupply.db`, `data/cache_embeddings.json`.
+Archivos generados que no se versionan: `.env`, `data/andessupply.db`, `data/checkpoints.db`, `data/cache_embeddings.json`.
 
 ## Avance
 

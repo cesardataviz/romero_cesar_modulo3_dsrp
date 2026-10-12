@@ -12,6 +12,8 @@ graph TD;
 	validar_datos(validar_datos)
 	consultar_estado(consultar_estado)
 	evaluar(evaluar)
+	supervisor(supervisor)
+	reverificar(reverificar)
 	responder(responder)
 	atender_consulta(atender_consulta)
 	__end__([<p>__end__</p>]):::last
@@ -19,7 +21,11 @@ graph TD;
 	consultar_estado --> evaluar;
 	enrutar -.-> atender_consulta;
 	enrutar -.-> validar_datos;
-	evaluar --> responder;
+	evaluar -.-> responder;
+	evaluar -.-> supervisor;
+	reverificar --> responder;
+	supervisor -.-> responder;
+	supervisor -.-> reverificar;
 	validar_datos -.-> consultar_estado;
 	validar_datos -.-> responder;
 	atender_consulta --> __end__;

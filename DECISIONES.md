@@ -92,3 +92,12 @@
 - **Trade-off:** checkpoints livianos y sin secretos; a cambio, algunos datos deben volver a consultarse cuando hagan falta.
 - **Riesgo:** `stock` y `libres` son una foto del momento: si el flujo se pausa y el supervisor responde horas después, podrían estar desactualizados y confirmarse una entrega imposible.
 - **En producción:** volver a consultar stock y capacidad al reanudar, antes de confirmar; y registrar en el State solo identificadores para auditar, no datos sensibles.
+
+## D11 · Human-in-the-Loop con checkpoint persistente y reverificación
+
+- **Problema:** una excepción (fecha anterior a la mínima o capacidad insuficiente) no puede resolverla el sistema: la decide el Supervisor de logística, que puede responder horas después.
+- **Alternativas:** responder "requiere aprobación" y terminar · pausar con `interrupt()` en memoria · pausar con checkpoint persistente en SQLite.
+- **Decisión:** `interrupt()` en el nodo `supervisor` con checkpoint en `data/checkpoints.db`; se reanuda con el mismo `id_hilo` desde otro proceso. Sin side effects antes de `interrupt()`. Si aprueba, se vuelve a consultar el stock antes de confirmar; si rechaza, se ofrece la fecha estándar más cercana con capacidad. Una respuesta no válida del supervisor se trata como rechazo.
+- **Trade-off:** el proceso sobrevive a reinicios y queda auditable; a cambio, hay un archivo de estado más que administrar y un nodo que se re-ejecuta al reanudar.
+- **Riesgo:** (pendiente)
+- **En producción:** (pendiente)

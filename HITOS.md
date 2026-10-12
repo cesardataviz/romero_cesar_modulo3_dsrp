@@ -52,6 +52,10 @@
 - **¿Qué información necesita sobrevivir de un nodo a otro?** La solicitud y los datos del pedido (destino, cliente, SKU, cantidad, fecha), lo que producen los nodos intermedios (días de tránsito, stock, capacidad libre) y, sobre todo, la decisión y sus motivos, que leen la bifurcación y el supervisor.
 - **¿Qué campo del State sería innecesario o peligroso guardar?** Peligroso: la API key (quedaría escrita en disco con el checkpoint). Innecesario: todas las ventas del cliente, los chunks y los vectores (grandes y se pueden volver a consultar). Riesgoso: `stock` y `libres`, que pueden quedar desactualizados al reanudar.
 
-## Hito 4 · Retry, checkpoint y HITL — ⚪ pendiente
+## Hito 4 · Retry, checkpoint y HITL — 🟡 en curso
+
+- **Qué se construyó:** nodo `supervisor` con `interrupt()`, checkpoint persistente en SQLite (`data/checkpoints.db`), reanudación con el mismo `id_hilo` desde otro proceso (`iniciar` / `estado` / `reanudar`), nodo `reverificar` que vuelve a consultar el stock al aprobar, y fecha estándar alternativa al rechazar. 8 nodos y 4 conditional edges.
+- **Evidencia:** EVIDENCIAS.md · Evidencia 16 (pausa, estado, aprobación, rechazo); 32 pruebas.
+- **Pendiente:** RetryPolicy en una dependencia transitoria, fallo transitorio provocado y regla de negocio rechazada sin retry.
 ## Hito 5 · MCP — ⚪ pendiente
 ## Hito 6 · Integración y reflexión — ⚪ pendiente

@@ -370,3 +370,50 @@ Fecha mínima Arequipa (2 días): 2026-10-21
 ```
 
 **Resultado:** ✅ las 4 rutas se comportan según el diseño. Costo ≈ 0.00024 USD (3 llamadas al router; el saludo lo resuelve una regla).
+
+
+---
+
+## Hito 4 · Evidencia 16: Human-in-the-Loop — pausa, estado guardado y reanudación (mismo `id_hilo`)
+
+**Qué demuestra:** el caso base se pausa en el nodo `supervisor` con `interrupt()`, su State queda en `data/checkpoints.db` y se reanuda desde **otro proceso** con el mismo `id_hilo`, aprobando o rechazando.
+
+**1. Flujo pausado** — `uv run workflow.py iniciar LOG009-0001 "C-1003 necesita 12 EDGE-ORIN para el jueves 15 de octubre."`
+
+```text
+  [enrutar] {'destino': 'TOOLS', 'cliente_id': 'C-1003', 'sku': 'EDGE-ORIN', 'cantidad': 12, 'fecha': '2026-10-15'}
+  [validar_datos] {'dias_transito': 0}
+  [consultar_estado] {'stock': 18, 'libres': 9}
+  [evaluar] {'decision': 'EXCEPCION', 'motivos': ['Fecha pedida 2026-10-15 es anterior a la mínima 2026-10-19', 'Capacidad insuficiente: pide 12, quedan 9 libres']}
+
+  [PAUSA] Flujo pausado · id_hilo=LOG009-0001
+          ¿Autorizas el despacho extraordinario? 12 EDGE-ORIN para C-1003 el 2026-10-15 · costo 300 USD
+          Motivos: Fecha pedida 2026-10-15 es anterior a la mínima 2026-10-19; Capacidad insuficiente: pide 12, quedan 9 libres
+          Para continuar: uv run workflow.py reanudar LOG009-0001 aprobar|rechazar
+```
+
+**2. Estado guardado, leído desde otro proceso** — `uv run workflow.py estado LOG009-0001`
+
+```text
+id_hilo=LOG009-0001 · siguiente paso: ('supervisor',)
+  decision: EXCEPCION · stock: 18 · libres: 9 · (State completo de 12 campos)
+```
+
+**3. Reanudación aprobada** — `uv run workflow.py reanudar LOG009-0001 aprobar`
+
+```text
+  [supervisor] {'aprobacion': 'aprobar'}
+  [reverificar] {'stock': 18, 'decision': 'APROBADO_EXTRAORDINARIO'}
+  [responder] → Confirmado con despacho extraordinario autorizado por el Supervisor de logística (300 USD): 12 EDGE-ORIN para C-1003, entrega el 2026-10-15.
+```
+
+**4. Reanudación rechazada** — `iniciar LOG009-0002 ...` y `uv run workflow.py reanudar LOG009-0002 rechazar`
+
+```text
+  [supervisor] {'aprobacion': 'rechazar'}
+  [responder] → El Supervisor de logística no autorizó el despacho extraordinario ... Fecha estándar más cercana con capacidad: 2026-10-20.
+```
+
+**5. Pruebas** — `uv run pytest` → **32 passed** (incluye `tests/test_workflow.py`: ruta directa, pausa, aprobar, rechazar, otro `id_hilo` y respuesta no válida del supervisor).
+
+**Resultado:** ✅ predije los nodos de la aprobación (supervisor → reverificar → responder). LOG009-0001 guardó 9 checkpoints y LOG009-0002, 8 (no pasó por `reverificar`).
