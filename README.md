@@ -139,7 +139,8 @@ romero_cesar_modulo3/
 ├── docs/
 │   ├── clasificacion_solicitudes.md
 │   ├── diagrama_workflow.md  # diagrama generado por LangGraph
-│   └── diagrama_mcp.md       # antes/después de MCP
+│   ├── diagrama_mcp.md       # antes/después de MCP
+│   └── LIMITACIONES.md       # limitaciones y riesgos
 ├── tests/                    # pruebas pytest
 ├── HITOS.md
 ├── EVIDENCIAS.md
@@ -160,4 +161,4 @@ Archivos generados que no se versionan: `.env`, `data/andessupply.db`, `data/che
 | 5 · MCP | ✅ |
 | 6 · Integración y reflexión | 🟡 siguiente |
 
-Diagrama del grafo en [docs/diagrama_workflow.md](docs/diagrama_workflow.md). Detalle en [HITOS.md](HITOS.md), decisiones en [DECISIONES.md](DECISIONES.md) y evidencias en [EVIDENCIAS.md](EVIDENCIAS.md).
+Diagrama del grafo en [docs/diagrama_workflow.md](docs/diagrama_workflow.md); MCP antes/después en [docs/diagrama_mcp.md](docs/diagrama_mcp.md); limitaciones y riesgos en [docs/LIMITACIONES.md](docs/LIMITACIONES.md). Detalle en [HITOS.md](HITOS.md), decisiones en [DECISIONES.md](DECISIONES.md) y evidencias en [EVIDENCIAS.md](EVIDENCIAS.md).

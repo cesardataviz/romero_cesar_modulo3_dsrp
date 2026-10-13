@@ -81,5 +81,11 @@
 
 - **Qué se construyó:** `demo_e2e.py`, caso end-to-end reproducible en un solo comando (semilla → datos → router → RAG/SQL → Tools → Reglas → HITL con checkpoint → MCP cliente puro → agente MCP).
 - **Qué decisión cambió:** el workflow sigue usando las capacidades directamente y MCP queda como puerta hacia afuera (D14); la base ya no se reconstruye al iniciar, sino de forma explícita tras editar un CSV (D1 actualizada).
-- **Evidencia:** EVIDENCIAS.md · Evidencia 20.
-- **Pendiente:** limitaciones y riesgos, preguntas de razonamiento, `USO_IA.md` final, `git_log.txt` y video.
+- **Evidencia:** EVIDENCIAS.md · Evidencia 20; limitaciones en `docs/LIMITACIONES.md` (23, con las 3 más importantes).
+- **Pendiente:** `USO_IA.md` final, `git_log.txt` y video.
+
+**Preguntas de razonamiento**
+- **¿Cuál es el mayor riesgo del diseño actual?** Que aprobar un pedido no reserva stock ni capacidad: dos clientes pueden recibir confirmación por las mismas unidades. Ocurre en el camino normal, es silencioso (cada respuesta por separado es correcta) y su costo es alto.
+- **¿Qué parte es probabilística y qué parte determinista?** Probabilísticas: el router LLM y el agente MCP (y la elección de sección por embeddings, que depende de un modelo). Deterministas: semilla, reglas de negocio, Tools, SQL, checkpoint, servidor MCP, reglas del router y TF-IDF. Las decisiones que cuestan dinero (aprobar, rechazar, fechas, capacidad) son siempre deterministas.
+- **¿Qué cambiaría si esto operara con SAP/ERP/CRM reales?** Los datos vendrían de una sola fuente (el ERP), con el cliente y su estado en el CRM/ERP y un proceso periódico que cargue los feriados. Aprobar registraría la reserva de stock y capacidad en el ERP (resolviendo el mayor riesgo), lo que exige que la reserva sea idempotente al reanudar y vuelve más importante el retry, porque cada consulta sería una llamada por red.
+- **¿Qué simplificarías si tuvieras que mantenerlo un año?** Unificaría el acceso a datos en una sola capa de servicios que usen por igual el workflow y el servidor MCP, para que los dos caminos no diverjan (D14). Hoy cada uno agrega lógica propia (el workflow valida clientes y ciudades en `validar_datos`; el servidor MCP marca días hábiles y calcula la fecha de despacho); en esa capa vivirían todas las validaciones, con pruebas que comprueben que ambos caminos responden igual.

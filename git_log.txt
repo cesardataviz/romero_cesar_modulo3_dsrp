@@ -1,0 +1,23 @@
+1c19151 2026-10-13 LOG-009: Hito 6 - caso end-to-end reproducible y decision D14
+8a863dd 2026-10-13 LOG-009: Hito 5 completado - preguntas de razonamiento y D13
+4805a3d 2026-10-13 LOG-009: Hito 5 - agente MCP, cuarta tool (fecha de despacho) y diagrama antes/despues
+c987c7a 2026-10-13 LOG-009: D12 - Jev como alternativa de produccion para el router
+24ba2b8 2026-10-11 LOG-009: Hito 4 completado - retry solo para fallos transitorios del LLM
+5274cac 2026-10-11 LOG-009: Hito 4A - HITL con interrupt, checkpoint SQLite y reanudacion por id_hilo
+3754586 2026-10-11 LOG-009: Hito 3 completado - workflow LangGraph, State pequeño y diagrama
+0f81b14 2026-10-11 LOG-009: README con arquitectura (Mermaid), estructura e instalacion
+0eef127 2026-10-11 LOG-009: Hito 2 completado - 26 pruebas pytest y preguntas de razonamiento
+ae780dc 2026-10-11 LOG-009: 26 pruebas automaticas con pytest (SQL, Tools, Reglas, RAG, Router)
+065b9bc 2026-10-11 LOG-009: router hibrido, evaluacion 14/14, decisiones D8-D9 completas
+e2fb1ac 2026-10-11 LOG-009: router hibrido (reglas + LLM validado), evaluacion 14/14 y criterio de fechas D9
+d0604d3 2026-10-11 LOG-009: RAG final con umbral, respaldo TF-IDF, medidor de costo y cache
+494cea0 2026-10-10 LOG-009: chunks enriquecidos con titulo del documento (D7), embeddings 5/5
+3302363 2026-10-09 LOG-009: RAG con TF-IDF y embeddings OpenAI, comparacion y evidencias
+5ec25c2 2026-10-08 LOG-009: politicas de despacho para RAG, D6 y proteccion de secretos
+6564b1e 2026-10-08 LOG-009: Hito 2 - reglas de negocio (aprobado, excepcion, rechazado)
+b3556e8 2026-10-08 LOG-009: corrige orden de parametros de la semilla, agrega fecha de referencia y Tools
+bb98024 2026-10-08 LOG-009: Hito 2 - consultas SQL parametrizadas y validacion de cliente
+170ac25 2026-10-08 LOG-009: Hito 1 completado - clasificacion de solicitudes y razonamiento
+a0ebec2 2026-10-08 LOG-009: carga CSV a SQLite con SQL parametrizado
+3781476 2026-10-07 LOG-009: datos CSV de AndesSupply y decisiones D1-D3
+88bbb4b 2026-10-07 LOG-009: config del caso, evidencias de reproducibilidad y uso de IA
