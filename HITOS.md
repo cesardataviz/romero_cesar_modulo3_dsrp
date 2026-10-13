@@ -64,12 +64,17 @@
 - **¿Qué se pierde si no existe checkpoint?** El estado vive solo en memoria: si el programa se cierra mientras espera al supervisor, el pedido pausado desaparece, su respuesta no tiene a dónde llegar, hay que repetir todo (incluido el router, que cuesta) y no queda registro de lo decidido.
 - **¿Por qué un side effect antes de `interrupt()` puede ser peligroso?** Porque al reanudar el nodo se ejecuta de nuevo desde la primera línea: un correo se enviaría dos veces; una reserva de capacidad o un cobro de 300 USD se duplicarían.
 - **¿Qué pasa si se reanuda con otro `id_hilo`?** Si no existe, no hay nada que reanudar. Si existe pero es otro pedido, se aprueba (y se paga) un despacho que nadie pidió y el pedido real queda pausado indefinidamente: el sistema no puede detectarlo, por eso conviene confirmar el resumen del pedido antes de aplicar la decisión.
-## Hito 5 · MCP — 🟡 en curso
+## Hito 5 · MCP — ✅ completado
 
 - **Qué se construyó:** `mcp_servidor.py` (stdio) con 4 Tools de solo lectura (`consultar_stock`, `consultar_capacidad`, `consultar_transito`, `consultar_fecha_despacho`) y 2 Resources (políticas); `mcp_cliente.py`, cliente puro sin LLM; `agente_mcp.py`, agente que consume el mismo servidor; diagrama antes/después en `docs/diagrama_mcp.md`.
 - **Qué falló:** el SDK de MCP había cambiado de versión (2.x): `FastMCP` pasó a llamarse `MCPServer` y los atributos de las respuestas usan `snake_case` (`is_error`).
 - **Qué aprendí:** con stdio la salida estándar transporta el protocolo, así que el servidor no puede imprimir en ella; lo que no se publica en el servidor no existe para los clientes (mínimo privilegio).
 - **Qué decisión cambió:** se agregó `consultar_fecha_despacho` para que el agente no calcule fechas con el LLM (D13).
-- **Evidencia:** EVIDENCIAS.md · Evidencias 18 (cliente puro) y 19 (agente); 43 pruebas.
-- **Pendiente:** preguntas de razonamiento.
+- **Evidencia:** EVIDENCIAS.md · Evidencias 18 (cliente puro) y 19 (agente); `docs/diagrama_mcp.md`; 43 pruebas.
+
+**Preguntas de razonamiento**
+- **¿Qué problema de acoplamiento existe antes de MCP?** Cada aplicación que quisiera consultar stock o capacidad tendría que importar el código Python y conectarse a la base de datos: queda atada al lenguaje, a los archivos internos y a la forma de las tablas, y cualquier cambio interno la rompe. (Aparte, quien use las herramientas debe respetar su orden, por ejemplo calcular la fecha de despacho antes de consultar la capacidad: eso es un problema de orquestación, que se resolvió con `consultar_fecha_despacho` y las instrucciones del agente.)
+- **¿Por qué no deberíamos exponer `ejecutar_sql(sql)`?** Porque permitiría consultas libres que pueden sobrecargar el servidor, exponer toda la información e incluso modificar o borrar datos; y si el SQL lo genera un LLM, el contenido de la consulta lo decide un modelo probabilístico.
+- **¿Qué capacidad NO expondrías por MCP y por qué?** Todo lo que escribe (SQL libre, actualizar stock) y la aprobación del despacho extraordinario: esa decisión corresponde a una persona autorizada (HITL), no a cualquier programa.
+- **¿Qué gana otra aplicación al consumir el mismo servidor?** Usa las capacidades en cualquier lenguaje sin copiar código ni acceder a la base; los cambios internos se hacen en un solo lugar; descubre el menú sola (`list_tools`); y todas obtienen las mismas respuestas con las mismas reglas.
 ## Hito 6 · Integración y reflexión — ⚪ pendiente

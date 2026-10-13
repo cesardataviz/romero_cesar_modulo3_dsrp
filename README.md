@@ -148,7 +148,7 @@ Archivos generados que no se versionan: `.env`, `data/andessupply.db`, `data/che
 | 2 · Router + RAG + SQL + Tools | ✅ |
 | 3 · Workflow con estado (LangGraph) | ✅ |
 | 4 · Retry, checkpoint y HITL | ✅ |
-| 5 · MCP | 🟡 en curso |
-| 6 · Integración y reflexión | ⚪ |
+| 5 · MCP | ✅ |
+| 6 · Integración y reflexión | 🟡 siguiente |
 
 Diagrama del grafo en [docs/diagrama_workflow.md](docs/diagrama_workflow.md). Detalle en [HITOS.md](HITOS.md), decisiones en [DECISIONES.md](DECISIONES.md) y evidencias en [EVIDENCIAS.md](EVIDENCIAS.md).
