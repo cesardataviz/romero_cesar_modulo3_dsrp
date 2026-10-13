@@ -32,13 +32,13 @@ flowchart TD
     CFG["config_caso.py<br/>semilla 9911"] -.-> RG
     RAG -.->|embeddings| OAI[("OpenAI API")]
     R -.->|clasificación| OAI
+    MS["Servidor MCP · stdio<br/>mcp_servidor.py<br/>4 Tools + 2 Resources"] --> T
+    MS --> DOCS
+    CL["Cliente MCP puro<br/>mcp_cliente.py"] --> MS
+    AG["Agente MCP<br/>agente_mcp.py"] --> MS
+    AG -.->|decide qué tool usar| OAI
 
-    subgraph PLAN["En construcción"]
-        MCP["Servidor MCP · stdio<br/>(Hito 5)"]
-    end
 
-    classDef pendiente stroke-dasharray: 5 5
-    class MCP pendiente
 ```
 
 | Tipo de decisión | Responsable | Ejemplo |
@@ -46,7 +46,7 @@ flowchart TD
 | Determinista | Python (`reglas.py`, reglas del router) | 12 unidades > 9 libres → excepción |
 | Semántica | Router (reglas + LLM) | ¿La consulta es de política, historial o pedido? |
 | Proceso | LangGraph (`workflow.py`) | ¿Qué paso sigue y qué estado se conserva? |
-| Integración | MCP *(Hito 5)* | Exponer stock y capacidad a otras aplicaciones |
+| Integración | MCP (`mcp_servidor.py`) | Exponer stock y capacidad a otras aplicaciones |
 
 ## Parámetros del caso (semilla 9911)
 
@@ -96,7 +96,9 @@ uv run workflow.py iniciar LOG009-0001 "C-1003 necesita 12 EDGE-ORIN para el jue
 uv run workflow.py estado LOG009-0001             # State guardado en el checkpoint
 uv run workflow.py reanudar LOG009-0001 aprobar   # o rechazar (decisión del supervisor)
 uv run workflow.py iniciar LOG009-0003 "..." --fallos 2   # simula 2 cortes de red: retry y continúa
-uv run pytest -v               # 36 pruebas automáticas (sin costo: la API se simula)
+uv run mcp_cliente.py          # cliente MCP puro: list_tools + call_tool (sin LLM, sin costo)
+uv run agente_mcp.py           # agente que consume el servidor MCP (usa la API)
+uv run pytest -v               # 43 pruebas automáticas (sin costo: la API se simula)
 ```
 
 ## Estructura
@@ -118,13 +120,17 @@ romero_cesar_modulo3/
 ├── router.py                 # router híbrido
 ├── evaluar_router.py         # casos de evaluación del router
 ├── workflow.py               # workflow con estado (LangGraph)
+├── mcp_servidor.py           # servidor MCP (stdio)
+├── mcp_cliente.py            # cliente MCP puro (sin LLM)
+├── agente_mcp.py             # agente que consume el servidor MCP
 ├── conftest.py               # preparación de las pruebas
 ├── data/
 │   ├── *.csv                 # clientes, ciudades, productos, inventario, ventas, despachos
 │   └── politicas/            # política de despacho y de despacho extraordinario
 ├── docs/
 │   ├── clasificacion_solicitudes.md
-│   └── diagrama_workflow.md  # diagrama generado por LangGraph
+│   ├── diagrama_workflow.md  # diagrama generado por LangGraph
+│   └── diagrama_mcp.md       # antes/después de MCP
 ├── tests/                    # pruebas pytest
 ├── HITOS.md
 ├── EVIDENCIAS.md
@@ -142,7 +148,7 @@ Archivos generados que no se versionan: `.env`, `data/andessupply.db`, `data/che
 | 2 · Router + RAG + SQL + Tools | ✅ |
 | 3 · Workflow con estado (LangGraph) | ✅ |
 | 4 · Retry, checkpoint y HITL | ✅ |
-| 5 · MCP | 🟡 siguiente |
+| 5 · MCP | 🟡 en curso |
 | 6 · Integración y reflexión | ⚪ |
 
 Diagrama del grafo en [docs/diagrama_workflow.md](docs/diagrama_workflow.md). Detalle en [HITOS.md](HITOS.md), decisiones en [DECISIONES.md](DECISIONES.md) y evidencias en [EVIDENCIAS.md](EVIDENCIAS.md).

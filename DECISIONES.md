@@ -110,3 +110,12 @@
 - **Trade-off:** se recupera solo de fallos momentáneos; a cambio, la solicitud tarda más (esperas de 0,5 s y 1 s) y hay que mantener la clasificación de errores.
 - **Riesgo:** si OpenAI sigue caído tras los 3 intentos, el cliente espera casi 2 s y recibe un "intenta más tarde": puede irse y se pierde el pedido. Además, si muchas solicitudes reintentan a la vez contra un servidor saturado, lo empeoran (las esperas crecientes con variación aleatoria lo mitigan).
 - **En producción:** modelo o proveedor de respaldo cuando el principal no responde; para el router, un modelo de decisiones estructuradas como Jev (TypeSafe AI), que devuelve probabilidades por opción en vez de una confianza autodeclarada (evaluándolo antes con los 14 casos); reintentos diferidos del mismo `id_hilo` desde el checkpoint cuando el servicio vuelva, sin que el cliente repita su solicitud; y alertas si la caída se prolonga.
+
+## D13 · Servidor MCP con mínimo privilegio
+
+- **Problema:** otras aplicaciones (portal, chatbot de otro equipo, Claude Desktop) necesitan consultar stock, capacidad y tránsito; hoy tendrían que importar el código Python y acceder a toda la base de datos.
+- **Alternativas:** exponer todo (incluido `ejecutar_sql`, aprobar despachos, actualizar stock, historial) · exponer la evaluación completa del pedido · exponer solo consultas de lectura.
+- **Decisión:** servidor MCP stdio con 4 Tools de solo lectura (`consultar_stock`, `consultar_capacidad`, `consultar_transito`, `consultar_fecha_despacho`) y 2 Resources (las dos políticas). `consultar_fecha_despacho` se agregó para que el agente no calcule fechas: un LLM podría restar mal los días hábiles con total seguridad; el cálculo lo hace Python (`reglas.fecha_despacho`). No se exponen SQL libre, escritura de stock, aprobación de despachos (HITL), historial de ventas ni la evaluación de reglas. `consultar_capacidad` indica si el día es hábil, porque los consumidores no tienen acceso a la regla D5.
+- **Trade-off:** cualquier cliente MCP, en cualquier lenguaje, usa las capacidades sin conocer el código ni la base; a cambio, las otras aplicaciones deben combinar las consultas por su cuenta para saber si una entrega es viable.
+- **Riesgo:** (pendiente)
+- **En producción:** (pendiente)

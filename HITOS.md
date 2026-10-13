@@ -64,5 +64,12 @@
 - **¿Qué se pierde si no existe checkpoint?** El estado vive solo en memoria: si el programa se cierra mientras espera al supervisor, el pedido pausado desaparece, su respuesta no tiene a dónde llegar, hay que repetir todo (incluido el router, que cuesta) y no queda registro de lo decidido.
 - **¿Por qué un side effect antes de `interrupt()` puede ser peligroso?** Porque al reanudar el nodo se ejecuta de nuevo desde la primera línea: un correo se enviaría dos veces; una reserva de capacidad o un cobro de 300 USD se duplicarían.
 - **¿Qué pasa si se reanuda con otro `id_hilo`?** Si no existe, no hay nada que reanudar. Si existe pero es otro pedido, se aprueba (y se paga) un despacho que nadie pidió y el pedido real queda pausado indefinidamente: el sistema no puede detectarlo, por eso conviene confirmar el resumen del pedido antes de aplicar la decisión.
-## Hito 5 · MCP — ⚪ pendiente
+## Hito 5 · MCP — 🟡 en curso
+
+- **Qué se construyó:** `mcp_servidor.py` (stdio) con 4 Tools de solo lectura (`consultar_stock`, `consultar_capacidad`, `consultar_transito`, `consultar_fecha_despacho`) y 2 Resources (políticas); `mcp_cliente.py`, cliente puro sin LLM; `agente_mcp.py`, agente que consume el mismo servidor; diagrama antes/después en `docs/diagrama_mcp.md`.
+- **Qué falló:** el SDK de MCP había cambiado de versión (2.x): `FastMCP` pasó a llamarse `MCPServer` y los atributos de las respuestas usan `snake_case` (`is_error`).
+- **Qué aprendí:** con stdio la salida estándar transporta el protocolo, así que el servidor no puede imprimir en ella; lo que no se publica en el servidor no existe para los clientes (mínimo privilegio).
+- **Qué decisión cambió:** se agregó `consultar_fecha_despacho` para que el agente no calcule fechas con el LLM (D13).
+- **Evidencia:** EVIDENCIAS.md · Evidencias 18 (cliente puro) y 19 (agente); 43 pruebas.
+- **Pendiente:** preguntas de razonamiento.
 ## Hito 6 · Integración y reflexión — ⚪ pendiente

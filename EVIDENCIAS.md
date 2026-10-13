@@ -455,3 +455,52 @@ Una sola evaluación: reintentar no cambiaría el stock.
 **3. Pruebas** — `uv run pytest` → **36 passed** (incluye fallo transitorio que no se traga, fallo permanente → CLARIFY, clasificación de errores, 2 fallos + 1 éxito, y regla evaluada una sola vez).
 
 **Resultado:** ✅ predije ambas: sin reintento en la regla, rechazo decidido en `evaluar`.
+
+
+---
+
+## Hito 5 · Evidencia 18: cliente MCP puro sin LLM (`list_tools` + `call_tool`)
+
+**Qué demuestra:** el servidor MCP (stdio) publica 3 Tools y 2 Resources de solo lectura; un cliente sin LLM los descubre y los usa sin importar el código ni acceder a la base. Costo: 0 USD.
+**Comando:** `uv run mcp_cliente.py`
+
+```text
+list_tools:
+  - consultar_stock: Stock disponible de un producto (SKU, p. ej. EDGE-ORIN). Indica si el SKU no existe.
+  - consultar_capacidad: Capacidad de despacho de un día (AAAA-MM-DD): total, comprometida y libre. Indica si es día hábil.
+  - consultar_transito: Días de tránsito desde el almacén hasta una ciudad. Indica si la ciudad no está registrada.
+list_resources:
+  - politica://despacho · Política de despacho estándar
+  - politica://despacho-extraordinario · Política de despacho extraordinario
+call_tool:
+  consultar_stock({'sku': 'EDGE-ORIN'}) → {'ok': True, 'sku': 'EDGE-ORIN', 'nombre': 'Modulo edge computing Orin', 'stock_disponible': 18}
+  consultar_capacidad({'fecha': '2026-10-15'}) → {'ok': True, 'fecha': '2026-10-15', 'capacidad_diaria': 21, 'comprometidas': 12, 'libres': 9, 'dia_habil': True}
+  consultar_capacidad({'fecha': '2026-10-17'}) → {'ok': True, 'fecha': '2026-10-17', 'dia_habil': False, 'libres': 0, 'motivo': 'No se despacha en fines de semana'}
+  consultar_transito({'ciudad': 'Iquitos'}) → {'ok': False, 'motivo': 'La ciudad Iquitos no tiene tránsito registrado'}
+read_resource politica://despacho-extraordinario → # Política de despacho extraordinario · AndesSupply
+call_tool de una capacidad NO expuesta:
+  ejecutar_sql → ERROR: Unknown tool: ejecutar_sql
+```
+
+**Resultado:** ✅ predije que el sábado no tendría capacidad y que `ejecutar_sql` sería desconocida. Pruebas: `uv run pytest` → **41 passed** (incluye `tests/test_mcp.py`).
+
+
+---
+
+## Hito 5 · Evidencia 19: agente que consume el mismo servidor MCP (consulta compuesta)
+
+**Qué demuestra:** el LLM (`gpt-6-luna`) recibe el menú del servidor MCP, decide qué Tools usar y en qué orden, y redacta la respuesta con esos datos. El cálculo de fechas lo hace Python (`consultar_fecha_despacho`), no el LLM.
+**Comando:** `uv run agente_mcp.py`
+
+```text
+> ¿Pueden despachar 5 PLC-S7M al cliente C-1004 en Arequipa para el jueves 22 de octubre de 2026? Revisa stock, tránsito y capacidad.
+  [tool] consultar_stock({'sku': 'PLC-S7M'}) → {"ok": true, ..., "stock_disponible": 10}
+  [tool] consultar_transito({'ciudad': 'Arequipa'}) → {"ok": true, "ciudad": "Arequipa", "dias_transito": 2}
+  [tool] consultar_fecha_despacho({'fecha_entrega': '2026-10-22', 'ciudad': 'Arequipa'}) → {..., "fecha_despacho": "2026-10-20"}
+  [tool] consultar_capacidad({'fecha': '2026-10-20'}) → {"ok": true, "fecha": "2026-10-20", "capacidad_diaria": 21, "comprometidas": 9, "libres": 12, "dia_habil": true}
+  [costo] 1837+174 tokens ≈ 0.000271 USD
+
+Sí. Hay 10 unidades disponibles (se requieren 5) y el tránsito a Arequipa es de 2 días. El despacho debe salir el 20/10/2026; ese día es hábil y tiene 12 espacios libres, suficientes para el pedido.
+```
+
+**Resultado:** ✅ el agente usó las 4 Tools y consultó la capacidad del día de **despacho** (20), no del día de entrega (22). Yo había predicho que consultaría el 22; consultar el 22 habría dado 7 libres y la misma respuesta, un error que habría quedado oculto. Pruebas: `uv run pytest` → **43 passed** (incluye `tests/test_agente_mcp.py`).
