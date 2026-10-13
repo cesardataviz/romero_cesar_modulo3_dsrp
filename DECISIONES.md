@@ -128,3 +128,12 @@
 - **Trade-off:** más simple y rápido, sin rehacer el workflow ni sus pruebas, y sin exponer por MCP la validación de clientes (que el workflow necesita); a cambio, hay dos caminos al mismo código que hay que explicar.
 - **Riesgo:** si se agrega una validación solo en el servidor MCP (p. ej. rechazar SKUs dados de baja), el workflow no la aplicaría: los dos caminos responderían distinto ante el mismo pedido y nadie lo notaría.
 - **En producción:** toda regla o validación vive en la capa compartida (`tools.py` / `reglas.py`); el servidor MCP solo traduce el protocolo, sin lógica propia (como ya hace `consultar_fecha_despacho`, que llama a `reglas.fecha_despacho`). Pruebas que verifiquen que ambos caminos responden igual.
+
+## D15 · Interfaz web con Gradio publicada en Hugging Face Spaces, con contraseña
+
+- **Problema:** mostrar el agente como una aplicación usable (cliente y supervisor), no solo desde la terminal.
+- **Alternativas:** Hugging Face Spaces · GCP Cloud Run · Azure Container Apps · AWS App Runner; acceso público o con contraseña.
+- **Decisión:** `app.py` con Gradio (pestaña Cliente con chat y pestaña Supervisor con los expedientes pausados, su resumen y botones Aprobar/Rechazar), publicada en Hugging Face Spaces con usuario y contraseña. La interfaz usa el mismo workflow, checkpoint y reglas: no agrega lógica de negocio. En el Space, la app no arranca si faltan las credenciales.
+- **Trade-off:** publicación rápida y gratuita, pensada para Gradio; a cambio, menos control que una nube empresarial y sin almacenamiento persistente.
+- **Riesgo:** (pendiente)
+- **En producción:** (pendiente)

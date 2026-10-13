@@ -53,9 +53,11 @@ Limitaciones observadas durante el desarrollo, con su origen (decisión o eviden
 | 22 | Un solo proveedor de LLM: si OpenAI cae, el router y el agente se detienen. | D6, D12 |
 | 23 | Las pruebas usan la base real: dos ejecuciones simultáneas chocan. | Hito 5 |
 | 24 | En Hugging Face Spaces no hay almacenamiento persistente: si el Space se reinicia, los expedientes pausados (`checkpoints.db`) se pierden. | D15 |
+| 25 | El cliente no recibe un aviso automático cuando el supervisor decide: debe consultar su expediente en *Seguimiento de expediente*. | Prueba de la interfaz |
 
 ## Mejoras propuestas
 
 - **Despachar antes:** si el día de despacho no tiene capacidad, buscar un día hábil anterior con cupo (no antes de hoy) antes de escalar al supervisor.
 - **Invitar a registrarse:** si quien escribe no es cliente registrado, ofrecerle registrarse en lugar de solo rechazar el pedido.
+- **Aviso automático al cliente:** notificar en el chat (o por correo) cuando el supervisor aprueba o rechaza su expediente.
 - **Reservar al aprobar:** registrar la reserva de stock y capacidad (idempotente) para resolver la limitación #3.

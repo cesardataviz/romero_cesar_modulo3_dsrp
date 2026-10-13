@@ -109,6 +109,14 @@ uv run agente_mcp.py           # agente que consume el servidor MCP (usa la API)
 uv run pytest -v               # 43 pruebas automáticas (sin costo: la API se simula)
 ```
 
+## Interfaz web y despliegue
+
+```bash
+uv run app.py                  # interfaz Gradio local: pestaña Cliente y pestaña Supervisor
+```
+
+Publicada en Hugging Face Spaces con usuario y contraseña (secretos `OPENAI_API_KEY`, `APP_USUARIO`, `APP_CLAVE`). La ficha del Space está en `despliegue/README_space.md` y las dependencias en `requirements.txt` (generado con `uv export --format requirements.txt --no-dev --no-hashes --no-emit-project -o requirements.txt`).
+
 ## Estructura
 
 Todo el proyecto vive en la carpeta `romero_cesar_modulo3/`, que es la raíz del repositorio:
@@ -132,6 +140,9 @@ romero_cesar_modulo3/
 ├── mcp_cliente.py            # cliente MCP puro (sin LLM)
 ├── agente_mcp.py             # agente que consume el servidor MCP
 ├── demo_e2e.py               # caso end-to-end reproducible
+├── app.py                    # interfaz web (Gradio)
+├── requirements.txt          # dependencias para Hugging Face Spaces
+├── despliegue/               # ficha del Space de Hugging Face
 ├── conftest.py               # preparación de las pruebas
 ├── data/
 │   ├── *.csv                 # clientes, ciudades, productos, inventario, ventas, despachos
