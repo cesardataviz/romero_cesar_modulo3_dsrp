@@ -84,9 +84,17 @@ En Linux o macOS: `cp .env.example .env`.
 
 ## Uso
 
+Caso end-to-end completo en un solo comando (semilla → datos → router → fuentes → reglas → HITL → MCP):
+
+```bash
+uv run demo_e2e.py aprobar      # o rechazar: decisión del supervisor (usa la API, ~0,0005 USD)
+```
+
+Componentes por separado:
+
 ```bash
 uv run config_caso.py          # muestra CASO_ID, semilla y parámetros
-uv run cargar_datos.py         # reconstruye SQLite desde los CSV
+uv run cargar_datos.py         # reconstruye SQLite desde los CSV (ejecutar tras editar un CSV)
 uv run consultas_sql.py        # consultas SQL sobre el historial
 uv run tools.py                # Tools de estado actual
 uv run reglas.py               # reglas de negocio
@@ -123,6 +131,7 @@ romero_cesar_modulo3/
 ├── mcp_servidor.py           # servidor MCP (stdio)
 ├── mcp_cliente.py            # cliente MCP puro (sin LLM)
 ├── agente_mcp.py             # agente que consume el servidor MCP
+├── demo_e2e.py               # caso end-to-end reproducible
 ├── conftest.py               # preparación de las pruebas
 ├── data/
 │   ├── *.csv                 # clientes, ciudades, productos, inventario, ventas, despachos

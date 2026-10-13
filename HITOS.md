@@ -77,4 +77,9 @@
 - **¿Por qué no deberíamos exponer `ejecutar_sql(sql)`?** Porque permitiría consultas libres que pueden sobrecargar el servidor, exponer toda la información e incluso modificar o borrar datos; y si el SQL lo genera un LLM, el contenido de la consulta lo decide un modelo probabilístico.
 - **¿Qué capacidad NO expondrías por MCP y por qué?** Todo lo que escribe (SQL libre, actualizar stock) y la aprobación del despacho extraordinario: esa decisión corresponde a una persona autorizada (HITL), no a cualquier programa.
 - **¿Qué gana otra aplicación al consumir el mismo servidor?** Usa las capacidades en cualquier lenguaje sin copiar código ni acceder a la base; los cambios internos se hacen en un solo lugar; descubre el menú sola (`list_tools`); y todas obtienen las mismas respuestas con las mismas reglas.
-## Hito 6 · Integración y reflexión — ⚪ pendiente
+## Hito 6 · Integración y reflexión — 🟡 en curso
+
+- **Qué se construyó:** `demo_e2e.py`, caso end-to-end reproducible en un solo comando (semilla → datos → router → RAG/SQL → Tools → Reglas → HITL con checkpoint → MCP cliente puro → agente MCP).
+- **Qué decisión cambió:** el workflow sigue usando las capacidades directamente y MCP queda como puerta hacia afuera (D14); la base ya no se reconstruye al iniciar, sino de forma explícita tras editar un CSV (D1 actualizada).
+- **Evidencia:** EVIDENCIAS.md · Evidencia 20.
+- **Pendiente:** limitaciones y riesgos, preguntas de razonamiento, `USO_IA.md` final, `git_log.txt` y video.

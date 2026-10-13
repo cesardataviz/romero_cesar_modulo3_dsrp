@@ -504,3 +504,25 @@ Sí. Hay 10 unidades disponibles (se requieren 5) y el tránsito a Arequipa es d
 ```
 
 **Resultado:** ✅ el agente usó las 4 Tools y consultó la capacidad del día de **despacho** (20), no del día de entrega (22). Yo había predicho que consultaría el 22; consultar el 22 habría dado 7 libres y la misma respuesta, un error que habría quedado oculto. Pruebas: `uv run pytest` → **43 passed** (incluye `tests/test_agente_mcp.py`).
+
+
+---
+
+## Hito 6 · Evidencia 20: caso end-to-end reproducible (un solo comando)
+
+**Qué demuestra:** integración de semilla, datos, router, fuentes (RAG, SQL, Tools), reglas, workflow con HITL y checkpoint, y MCP (cliente puro + agente) sobre el caso base.
+**Comando:** `uv run demo_e2e.py aprobar`
+
+| Paso | Resultado |
+|---|---|
+| 1 · Caso y semilla | LOG-009 · 9911 → capacidad 21, ventana 5, costo 300 |
+| 2 · Datos | Se usa la base existente `andessupply.db` |
+| 3 · RAG | "¿Quién autoriza un envío urgente?" → router LLM: RAG → embeddings (caché de chunks) → **politica_despacho_extraordinario.md § Aprobación** |
+| 3 · SQL | "¿Cuántas entregas tardías tuvo C-1002?" → regla del router: SQL → "0 de 2 entregas a tiempo; 2 entregas tardías" |
+| 4 · Caso base | router → validar → Tools (stock 18, libres 9) → Reglas: **EXCEPCION** (2 motivos) → **[PAUSA]** `id_hilo=E2E-20261013-155506-PEDIDO` |
+| 5 · Checkpoint | State completo leído del disco; siguiente paso: `supervisor` |
+| 6 · Supervisor | aprobar → reverificar (stock 18) → **Confirmado con despacho extraordinario (300 USD)** |
+| 7 · MCP sin LLM | 4 Tools + 2 Resources; sábado sin capacidad; `ejecutar_sql` → Unknown tool |
+| 8 · Agente MCP | stock → tránsito → fecha de despacho (20) → capacidad del 20 (12 libres) → "Sí…" |
+
+**Resultado:** ✅ todo el sistema funciona de punta a punta. Predije que el RAG citaría la sección "Aprobación". Costo total de la ejecución ≈ 0.00042 USD (router ×2, embeddings de la pregunta, agente).

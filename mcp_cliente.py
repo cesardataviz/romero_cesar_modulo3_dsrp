@@ -31,7 +31,7 @@ async def main():
 
             print("list_tools:")
             for herramienta in (await sesion.list_tools()).tools:
-                print(f"  - {herramienta.name}: {herramienta.description}")
+                print(f"  - {herramienta.name}: {herramienta.description.splitlines()[0]}")
 
             print("list_resources:")
             for recurso in (await sesion.list_resources()).resources:

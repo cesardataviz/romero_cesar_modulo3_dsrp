@@ -7,7 +7,7 @@
 - **Decisión:** CSV para editar y SQLite para las consultas SQL.
 - **Trade-off:** gano facilidad de edición y SQL real; a cambio, hay un paso extra de carga y dos copias de los datos.
 - **Riesgo:** si se edita el CSV y no se actualiza SQLite, el agente daría información desactualizada, por ejemplo confirmar stock que no existe.
-- **Mitigación:** regenerar SQLite desde los CSV automáticamente al iniciar el sistema.
+- **Mitigación (actualizada en el Hito 6):** al principio se propuso regenerar SQLite al iniciar el sistema; finalmente se decidió usar la base existente y reconstruirla de forma explícita con `uv run cargar_datos.py` después de editar un CSV. Los programas solo la crean si no existe y las pruebas la reconstruyen siempre. Es aceptable porque ningún componente del sistema escribe en la base: solo cambia si se edita a propósito.
 - **En producción:** el stock y los despachos vendrían del ERP (p. ej. SAP) y los clientes del CRM, consultados en tiempo real; una sola fuente de verdad.
 
 ## D2 · La ciudad de destino afecta el plazo de entrega
@@ -119,3 +119,12 @@
 - **Trade-off:** cualquier cliente MCP, en cualquier lenguaje, usa las capacidades sin conocer el código ni la base; a cambio, las otras aplicaciones deben combinar las consultas por su cuenta para saber si una entrega es viable.
 - **Riesgo:** el servidor no pide identificación: cualquier programa que pueda iniciarlo podría extraer información de stock y capacidad o saturarlo con consultas hasta hacerlo caer. Con stdio el riesgo es local (lo inicia un programa en la misma máquina); sería crítico si se publicara en red.
 - **En producción:** autenticación (saber quién consulta y desde dónde, solo clientes y sistemas registrados), autorización por herramienta (scopes: no todos ven lo mismo), límite de consultas por cliente y registro de cada llamada.
+
+## D14 · El workflow usa las capacidades directamente; MCP es la puerta hacia afuera
+
+- **Problema:** hay dos caminos hacia las mismas capacidades: el workflow importa `tools.py` y el servidor MCP también. ¿Debería el workflow consumir el servidor MCP?
+- **Alternativas:** mantener la llamada directa en el workflow · que el workflow consuma el servidor MCP.
+- **Decisión:** mantener la llamada directa. El servidor MCP es para consumidores externos (cliente puro, agente, otras apps). Ambos caminos usan el mismo `tools.py` y `reglas.py`, así que no hay lógica duplicada.
+- **Trade-off:** más simple y rápido, sin rehacer el workflow ni sus pruebas, y sin exponer por MCP la validación de clientes (que el workflow necesita); a cambio, hay dos caminos al mismo código que hay que explicar.
+- **Riesgo:** si se agrega una validación solo en el servidor MCP (p. ej. rechazar SKUs dados de baja), el workflow no la aplicaría: los dos caminos responderían distinto ante el mismo pedido y nadie lo notaría.
+- **En producción:** toda regla o validación vive en la capa compartida (`tools.py` / `reglas.py`); el servidor MCP solo traduce el protocolo, sin lógica propia (como ya hace `consultar_fecha_despacho`, que llama a `reglas.fecha_despacho`). Pruebas que verifiquen que ambos caminos responden igual.
