@@ -8,11 +8,32 @@ Trabajo Integrador del Módulo 3 (Agentes de IA · RAG agéntico · LangGraph ·
 
 El agente recibe solicitudes en lenguaje natural y decide si AndesSupply puede **comprometer una fecha de entrega**. Las decisiones objetivas (plazos, capacidad, stock) las toman reglas en Python; el LLM solo interpreta el lenguaje. Cuando la fecha es incompatible o se requiere un **despacho extraordinario**, el flujo se detiene para que lo apruebe el **Supervisor de logística** (Human-in-the-Loop).
 
+## Interfaz web (Gradio)
+
+El agente también se usa desde el navegador. Un mismo expediente recorre las dos pestañas:
+
+**1 · El cliente pide.** El caso base genera una excepción: el pedido queda pausado y el cliente recibe su número de expediente.
+
+![Pestaña Cliente: pedido que requiere aprobación](docs/img/interfaz_cliente.png)
+
+**2 · El supervisor decide.** Ve los expedientes pausados y, antes de los botones, el resumen de lo que va a aprobar o rechazar.
+
+![Pestaña Supervisor: expediente pendiente con su resumen](docs/img/interfaz_supervisor.png)
+
+**3 · El cliente consulta el estado.** En *Seguimiento de expediente* ve la respuesta final tras la decisión.
+
+![Seguimiento de expediente: pedido confirmado](docs/img/interfaz_cliente_estado.png)
+
+La interfaz no agrega lógica de negocio: usa el mismo workflow, checkpoint (mismo `id_hilo`) y reglas que la terminal.
+
+**Despliegue en la nube:** Hugging Face Spaces, con usuario y contraseña — *en preparación*.
+
 ## Arquitectura
 
 ```mermaid
 flowchart TD
-    U["Usuario / vendedor<br/>(lenguaje natural)"] --> R{"Router híbrido<br/>router.py<br/>reglas + LLM validado<br/>retry de fallos transitorios"}
+    U["Usuario / vendedor<br/>(lenguaje natural)"] --> UI["Interfaz web · Gradio<br/>app.py · Hugging Face Spaces"]
+    UI --> R{"Router híbrido<br/>router.py<br/>reglas + LLM validado<br/>retry de fallos transitorios"}
 
     R -->|RAG| RAG["RAG · rag.py<br/>embeddings + umbral<br/>TF-IDF de respaldo"]
     R -->|SQL| SQL["SQL parametrizado<br/>consultas_sql.py"]
@@ -115,7 +136,7 @@ uv run pytest -v               # 43 pruebas automáticas (sin costo: la API se s
 uv run app.py                  # interfaz Gradio local: pestaña Cliente y pestaña Supervisor
 ```
 
-Publicada en Hugging Face Spaces con usuario y contraseña (secretos `OPENAI_API_KEY`, `APP_USUARIO`, `APP_CLAVE`). La ficha del Space está en `despliegue/README_space.md` y las dependencias en `requirements.txt` (generado con `uv export --format requirements.txt --no-dev --no-hashes --no-emit-project -o requirements.txt`).
+Para Hugging Face Spaces (en preparación) se usan los secretos `OPENAI_API_KEY`, `APP_USUARIO` y `APP_CLAVE`; sin usuario y contraseña la app no arranca en el Space. La ficha del Space está en `despliegue/README_space.md` y las dependencias en `requirements.txt` (generado con `uv export --format requirements.txt --no-dev --no-hashes --no-emit-project -o requirements.txt`).
 
 ## Estructura
 
@@ -150,6 +171,7 @@ romero_cesar_modulo3/
 ├── docs/
 │   ├── clasificacion_solicitudes.md
 │   ├── diagrama_workflow.md  # diagrama generado por LangGraph
+│   ├── img/                  # capturas de la interfaz
 │   ├── diagrama_mcp.md       # antes/después de MCP
 │   └── LIMITACIONES.md       # limitaciones y riesgos
 ├── tests/                    # pruebas pytest
