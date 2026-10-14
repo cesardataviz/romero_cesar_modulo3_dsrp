@@ -129,11 +129,12 @@
 - **Riesgo:** si se agrega una validación solo en el servidor MCP (p. ej. rechazar SKUs dados de baja), el workflow no la aplicaría: los dos caminos responderían distinto ante el mismo pedido y nadie lo notaría.
 - **En producción:** toda regla o validación vive en la capa compartida (`tools.py` / `reglas.py`); el servidor MCP solo traduce el protocolo, sin lógica propia (como ya hace `consultar_fecha_despacho`, que llama a `reglas.fecha_despacho`). Pruebas que verifiquen que ambos caminos responden igual.
 
-## D15 · Interfaz web con Gradio publicada en Hugging Face Spaces, con contraseña
+## D15 · Interfaz web con Gradio; publicación en Hugging Face Spaces pendiente
 
 - **Problema:** mostrar el agente como una aplicación usable (cliente y supervisor), no solo desde la terminal.
 - **Alternativas:** Hugging Face Spaces · GCP Cloud Run · Azure Container Apps · AWS App Runner; acceso público o con contraseña.
 - **Decisión:** `app.py` con Gradio (pestaña Cliente con chat y pestaña Supervisor con los expedientes pausados, su resumen y botones Aprobar/Rechazar), publicada en Hugging Face Spaces con usuario y contraseña. La interfaz usa el mismo workflow, checkpoint y reglas: no agrega lógica de negocio. En el Space, la app no arranca si faltan las credenciales.
 - **Trade-off:** publicación rápida y gratuita, pensada para Gradio; a cambio, menos control que una nube empresarial y sin almacenamiento persistente.
-- **Riesgo:** (pendiente)
-- **En producción:** (pendiente)
+- **Qué cambió al probar:** el Space se creó primero como *Static* (sin secretos) y se corrigió a Gradio desde su README; luego Hugging Face respondió `403 · You've reached your cpu-basic quota limit` aun siendo el único Space de la cuenta (otros usuarios reportan lo mismo en el foro). Se decidió no pagar ni cambiar de nube antes de la entrega: la interfaz se usa en local, el Space se elimina (sus secretos guardaban la clave de OpenAI) y se revoca el token.
+- **Riesgo:** depender de la capa gratuita de una plataforma: puede cambiar sus límites sin aviso y dejar la app sin publicar; además, cada secreto guardado en una plataforma que no se usa es una exposición innecesaria.
+- **En producción:** un proveedor con contrato o cuenta de pago (o nube corporativa: Cloud Run, Azure Container Apps) con Docker, gestor de secretos, almacenamiento persistente para los checkpoints, autenticación y alertas de presupuesto.

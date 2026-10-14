@@ -26,13 +26,13 @@ El agente también se usa desde el navegador. Un mismo expediente recorre las do
 
 La interfaz no agrega lógica de negocio: usa el mismo workflow, checkpoint (mismo `id_hilo`) y reglas que la terminal.
 
-**Despliegue en la nube:** Hugging Face Spaces, con usuario y contraseña — *en preparación*.
+**Despliegue en la nube:** la app se ejecuta en local (`uv run app.py`). Está preparada para Hugging Face Spaces (ficha en `despliegue/README_space.md`, protegida con usuario y contraseña), pero la cuenta gratuita bloqueó el hardware CPU basic; la publicación queda como siguiente paso.
 
 ## Arquitectura
 
 ```mermaid
 flowchart TD
-    U["Usuario / vendedor<br/>(lenguaje natural)"] --> UI["Interfaz web · Gradio<br/>app.py · Hugging Face Spaces"]
+    U["Usuario / vendedor<br/>(lenguaje natural)"] --> UI["Interfaz web · Gradio<br/>app.py"]
     UI --> R{"Router híbrido<br/>router.py<br/>reglas + LLM validado<br/>retry de fallos transitorios"}
 
     R -->|RAG| RAG["RAG · rag.py<br/>embeddings + umbral<br/>TF-IDF de respaldo"]
@@ -136,7 +136,7 @@ uv run pytest -v               # 43 pruebas automáticas (sin costo: la API se s
 uv run app.py                  # interfaz Gradio local: pestaña Cliente y pestaña Supervisor
 ```
 
-Para Hugging Face Spaces (en preparación) se usan los secretos `OPENAI_API_KEY`, `APP_USUARIO` y `APP_CLAVE`; sin usuario y contraseña la app no arranca en el Space. La ficha del Space está en `despliegue/README_space.md` y las dependencias en `requirements.txt` (generado con `uv export --format requirements.txt --no-dev --no-hashes --no-emit-project -o requirements.txt`).
+Para publicarla en Hugging Face Spaces (pendiente: el hardware gratuito está bloqueado para la cuenta) se usan los secretos `OPENAI_API_KEY`, `APP_USUARIO` y `APP_CLAVE`; sin usuario y contraseña la app no arranca en el Space. La ficha del Space está en `despliegue/README_space.md` y las dependencias en `requirements.txt` (generado con `uv export --format requirements.txt --no-dev --no-hashes --no-emit-project -o requirements.txt`).
 
 ## Estructura
 

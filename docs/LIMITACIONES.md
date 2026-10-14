@@ -52,7 +52,7 @@ Limitaciones observadas durante el desarrollo, con su origen (decisión o eviden
 | 21 | Dos caminos al mismo código (workflow y MCP) pueden divergir si se agrega lógica en uno solo. | D14 |
 | 22 | Un solo proveedor de LLM: si OpenAI cae, el router y el agente se detienen. | D6, D12 |
 | 23 | Las pruebas usan la base real: dos ejecuciones simultáneas chocan. | Hito 5 |
-| 24 | En Hugging Face Spaces no hay almacenamiento persistente: si el Space se reinicia, los expedientes pausados (`checkpoints.db`) se pierden. | D15 |
+| 24 | La app no está publicada en la nube: Hugging Face bloqueó el hardware gratuito (CPU basic) de la cuenta. Aun publicada allí, no habría almacenamiento persistente y los expedientes pausados se perderían al reiniciar. | D15 |
 | 25 | El cliente no recibe un aviso automático cuando el supervisor decide: debe consultar su expediente en *Seguimiento de expediente*. | Prueba de la interfaz |
 
 ## Mejoras propuestas

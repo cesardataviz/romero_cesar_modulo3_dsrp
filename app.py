@@ -136,6 +136,11 @@ with gr.Blocks(title="AndesSupply · Despachos") as demo:
 
 if __name__ == "__main__":
     usuario, clave = os.getenv("APP_USUARIO"), os.getenv("APP_CLAVE")
-    if os.getenv("SPACE_ID") and not (usuario and clave):
-        raise SystemExit("En Hugging Face la app exige APP_USUARIO y APP_CLAVE como secretos: no se publica sin contraseña.")
-    demo.launch(auth=(usuario, clave) if usuario and clave else None)
+    en_la_nube = bool(os.getenv("K_SERVICE") or os.getenv("SPACE_ID"))  # Cloud Run define K_SERVICE
+    if en_la_nube and not (usuario and clave):
+        raise SystemExit("En la nube la app exige APP_USUARIO y APP_CLAVE como secretos: no se publica sin contraseña.")
+    demo.launch(
+        auth=(usuario, clave) if usuario and clave else None,
+        server_name="0.0.0.0" if en_la_nube else "127.0.0.1",  # en la nube debe escuchar en todas las interfaces
+        server_port=int(os.getenv("PORT", "7860")),
+    )
