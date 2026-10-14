@@ -26,13 +26,13 @@ El agente también se usa desde el navegador. Un mismo expediente recorre las do
 
 La interfaz no agrega lógica de negocio: usa el mismo workflow, checkpoint (mismo `id_hilo`) y reglas que la terminal.
 
-**Despliegue en la nube:** la app se ejecuta en local (`uv run app.py`). Está preparada para Hugging Face Spaces (ficha en `despliegue/README_space.md`, protegida con usuario y contraseña), pero la cuenta gratuita bloqueó el hardware CPU basic; la publicación queda como siguiente paso.
+**Despliegue en la nube:** publicada en **Google Cloud Run** — <https://andessupply-despachos-395711457798.us-central1.run.app> (acceso con usuario y contraseña). En local: `uv run app.py`.
 
 ## Arquitectura
 
 ```mermaid
 flowchart TD
-    U["Usuario / vendedor<br/>(lenguaje natural)"] --> UI["Interfaz web · Gradio<br/>app.py"]
+    U["Usuario / vendedor<br/>(lenguaje natural)"] --> UI["Interfaz web · Gradio<br/>app.py · Google Cloud Run"]
     UI --> R{"Router híbrido<br/>router.py<br/>reglas + LLM validado<br/>retry de fallos transitorios"}
 
     R -->|RAG| RAG["RAG · rag.py<br/>embeddings + umbral<br/>TF-IDF de respaldo"]
@@ -136,7 +136,11 @@ uv run pytest -v               # 43 pruebas automáticas (sin costo: la API se s
 uv run app.py                  # interfaz Gradio local: pestaña Cliente y pestaña Supervisor
 ```
 
-Para publicarla en Hugging Face Spaces (pendiente: el hardware gratuito está bloqueado para la cuenta) se usan los secretos `OPENAI_API_KEY`, `APP_USUARIO` y `APP_CLAVE`; sin usuario y contraseña la app no arranca en el Space. La ficha del Space está en `despliegue/README_space.md` y las dependencias en `requirements.txt` (generado con `uv export --format requirements.txt --no-dev --no-hashes --no-emit-project -o requirements.txt`).
+Despliegue en **Google Cloud Run** (proyecto `bq-chat-demo`, región `us-central1`): Cloud Build construye la imagen desde el `Dockerfile` (`.gcloudignore` evita subir `.env`), los secretos `OPENAI_API_KEY`, `APP_USUARIO` y `APP_CLAVE` viven en Secret Manager y el servicio corre con la cuenta `andessupply-run`, que solo puede leer esos tres secretos. En la nube la app se sirve con uvicorn y exige contraseña.
+
+```bash
+gcloud run deploy andessupply-despachos --source . --region us-central1 --service-account andessupply-run@bq-chat-demo.iam.gserviceaccount.com --set-secrets "OPENAI_API_KEY=OPENAI_API_KEY:latest,APP_USUARIO=APP_USUARIO:latest,APP_CLAVE=APP_CLAVE:latest" --allow-unauthenticated --max-instances 1 --memory 1Gi --session-affinity
+```
 
 ## Estructura
 
@@ -162,8 +166,9 @@ romero_cesar_modulo3/
 ├── agente_mcp.py             # agente que consume el servidor MCP
 ├── demo_e2e.py               # caso end-to-end reproducible
 ├── app.py                    # interfaz web (Gradio)
-├── requirements.txt          # dependencias para Hugging Face Spaces
-├── despliegue/               # ficha del Space de Hugging Face
+├── requirements.txt          # dependencias del contenedor
+├── Dockerfile                # imagen para Google Cloud Run
+├── despliegue/               # ficha para Hugging Face Spaces (alternativa)
 ├── conftest.py               # preparación de las pruebas
 ├── data/
 │   ├── *.csv                 # clientes, ciudades, productos, inventario, ventas, despachos

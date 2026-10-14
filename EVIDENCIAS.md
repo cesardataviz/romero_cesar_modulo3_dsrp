@@ -526,3 +526,20 @@ Sí. Hay 10 unidades disponibles (se requieren 5) y el tránsito a Arequipa es d
 | 8 · Agente MCP | stock → tránsito → fecha de despacho (20) → capacidad del 20 (12 libres) → "Sí…" |
 
 **Resultado:** ✅ todo el sistema funciona de punta a punta. Predije que el RAG citaría la sección "Aprobación". Costo total de la ejecución ≈ 0.00042 USD (router ×2, embeddings de la pregunta, agente).
+
+
+---
+
+## Hito 6 · Evidencia 21: interfaz web publicada en Google Cloud Run
+
+**Qué demuestra:** el mismo agente (workflow, reglas, HITL) funcionando en la nube, con secretos en Secret Manager y acceso con contraseña.
+**URL:** https://andessupply-despachos-395711457798.us-central1.run.app
+
+| Paso | Resultado |
+|---|---|
+| 1.er despliegue (revisión 00001) | `503 Service Unavailable`. Log: `ValueError: When localhost is not accessible, a shareable link must be created` → la autoprueba de `demo.launch()` falla cuando Cloud Run reduce la CPU |
+| Corrección | En la nube, `app.py` sirve la app con uvicorn (`gr.mount_gradio_app`); en local sigue con `demo.launch()` |
+| Prueba local simulando la nube | `GET /` → 200 · login con clave incorrecta → 400 · login con clave correcta → 200 |
+| 2.º despliegue (revisión 00002) | Todas las solicitudes `200 OK` servidas por uvicorn; el router llamó a OpenAI desde la nube: `[costo] 444+70 tokens ≈ 0.000079 USD` |
+
+**Resultado:** ✅ app publicada y funcionando; la clave de OpenAI nunca se subió en un archivo (Secret Manager + `.gcloudignore`).

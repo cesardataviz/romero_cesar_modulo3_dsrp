@@ -139,8 +139,13 @@ if __name__ == "__main__":
     en_la_nube = bool(os.getenv("K_SERVICE") or os.getenv("SPACE_ID"))  # Cloud Run define K_SERVICE
     if en_la_nube and not (usuario and clave):
         raise SystemExit("En la nube la app exige APP_USUARIO y APP_CLAVE como secretos: no se publica sin contraseña.")
-    demo.launch(
-        auth=(usuario, clave) if usuario and clave else None,
-        server_name="0.0.0.0" if en_la_nube else "127.0.0.1",  # en la nube debe escuchar en todas las interfaces
-        server_port=int(os.getenv("PORT", "7860")),
-    )
+    credenciales = (usuario, clave) if usuario and clave else None
+    if en_la_nube:
+        # En Cloud Run se sirve con uvicorn: demo.launch() hace una autoprueba de conexión que falla
+        # cuando Cloud Run reduce la CPU entre solicitudes, y detiene la app.
+        import uvicorn
+        from fastapi import FastAPI
+        servidor_web = gr.mount_gradio_app(FastAPI(), demo, path="/", auth=credenciales)
+        uvicorn.run(servidor_web, host="0.0.0.0", port=int(os.getenv("PORT", "8080")))
+    else:
+        demo.launch(auth=credenciales, server_port=int(os.getenv("PORT", "7860")))
