@@ -25,6 +25,7 @@ Las decisiones, ejecuciones y evidencias son mías.
 | Workflow y HITL | Explicación del State, `interrupt()`, checkpoint y retry; propuesta de `workflow.py` |
 | MCP | Propuesta de `mcp_servidor.py`, `mcp_cliente.py` y `agente_mcp.py` |
 | Integración y cierre | Propuesta de `demo_e2e.py`, diagramas y lista de limitaciones |
+| Interfaz y despliegue | Propuesta de `app.py` (Gradio), `Dockerfile` y pasos de Google Cloud Run; diagnóstico del error 503 con los logs |
 
 ## 3. Tres prompts representativos
 

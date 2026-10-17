@@ -82,7 +82,7 @@
 - **Qué se construyó:** `demo_e2e.py`, caso end-to-end reproducible en un solo comando (semilla → datos → router → RAG/SQL → Tools → Reglas → HITL con checkpoint → MCP cliente puro → agente MCP).
 - **Qué decisión cambió:** el workflow sigue usando las capacidades directamente y MCP queda como puerta hacia afuera (D14); la base ya no se reconstruye al iniciar, sino de forma explícita tras editar un CSV (D1 actualizada).
 - **Evidencia:** EVIDENCIAS.md · Evidencia 20; limitaciones en `docs/LIMITACIONES.md` (23, con las 3 más importantes).
-- **Pendiente:** `USO_IA.md` final, `git_log.txt` y video.
+- **Pendiente:** video y `git_log.txt` (se regenera al final).
 
 **Preguntas de razonamiento**
 - **¿Cuál es el mayor riesgo del diseño actual?** Que aprobar un pedido no reserva stock ni capacidad: dos clientes pueden recibir confirmación por las mismas unidades. Ocurre en el camino normal, es silencioso (cada respuesta por separado es correcta) y su costo es alto.
